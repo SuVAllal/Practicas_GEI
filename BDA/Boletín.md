@@ -1,3 +1,4 @@
+# Boletín PostgreSQL
 ## Ejercicio 2
 Crea un usuario en PostgreSQL identificado por una clave y con el privilegio createdb. Crea una base de datos con ese usuario.
 ```
