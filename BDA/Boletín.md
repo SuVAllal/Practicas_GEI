@@ -51,7 +51,37 @@ Completa la función ```connect_db()``` para que se realice la conexión con la 
 La función debe devolver la conexión obtenida.
 
 > En [psycopg2.errors – Exception classes mapping PostgreSQL errors — Psycopg 2.9.10 documentation](https://www.psycopg.org/docs/errors.html) se puede ver una lista de errores (que corresponden con el estándar SQLSTATE) expuesta por psycopg2.
+##### Formato para las excepciones:
+```python
+try:
+	# Acciones
+except <ListaTiposExcepcion> [as <NombreExcepcion> ]:
+	# Gestión de NombreExcepcion
+[else:
+	# Esta parte se ejecuta si no pasa por la parte "except" ]
+[finally:
+	# Esta parte se ejecuta siempre, ocurra o no un error ]
+```
 
+Ejercicio:
+```python
+import sys
+import psycopg2
 
+def connect_db():
+	"""
+	Se conecta a la BD predeterminada del usuario (DSN vacío)
+	:return: La conexión con la BD (o se sale del programa al no conseguirla)
+	"""
+
+	try:
+		conn = pyscopg2.connect("")
+		conn.autocommit = False
+		return conn
+	except psycopg2.Error(e) as e:
+		print(f"Error de conexión: {e}")
+		sys.exit(1)
+
+```
 
 
