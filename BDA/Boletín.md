@@ -36,3 +36,22 @@ Parámetros de conexión: {'user': 'vilalsus', 'channel_binding': 'prefer', 'dbn
 # Cerrar la conexión
 >>> conn.close()
 ```
+
+## Ejercicio 4
+El script es una plantilla que se irá completando en siguientes ejercicios. De momento lo que hace es:
+1. **Importa psycopg2:** para conectarse a PostgreSQL.
+2. Define tres funciones clave:
+	* ```connect_db()``` y ```disconnect_db()``` están vacías por ahora.
+	* ```create_table()``` solo imprime un mensaje ("Tabla artículo creada"), no hace nada en la BD.
+3. ```menu()``` muestra un menú interactivo simple con dos opciones: crear tabla (opción 1) p salir (q).
+4. ```main()``` llama a ```connect_db()```, muestra el menú y luego cierra la conexión.
+
+## Ejercicio 5
+Completa la función ```connect_db()``` para que se realice la conexión con la BD. Usa las credenciales y la BD creadas anteriormente. Desactiva el modo ```autocommit```.
+La función debe devolver la conexión obtenida.
+
+> En [psycopg2.errors – Exception classes mapping PostgreSQL errors — Psycopg 2.9.10 documentation](https://www.psycopg.org/docs/errors.html) se puede ver una lista de errores (que corresponden con el estándar SQLSTATE) expuesta por psycopg2.
+
+
+
+
