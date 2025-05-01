@@ -10,6 +10,7 @@
 # Curso 2024-2025
 
 # 1. Importamos el adaptador específico para el SGBD (PostgreSQL)
+import sys
 import psycopg2
 import psycopg2.extras
 
@@ -17,12 +18,27 @@ import psycopg2.extras
 ## ------------------------------------------------------------
 # 2. Obtenemos una conexión con la base de datos
 def connect_db():
-    pass
+    """
+     Se conecta a la BD predeterminada del usuario (DSN vacío)
+     :return: La conexión con la BD (o se sale del programa al no conseguirla)
+     """
+    try:
+        conn = psycopg2.connect("")
+        conn.autocommit = False
+        return conn
+    except psycopg2.Error(e) as e:
+        print(f"Error de conexión: {e}")
+        sys.exit(1)
 
 
 ## ------------------------------------------------------------
 def disconnect_db(conn):
-    pass
+    """
+    Se desconecta de la BD.
+    :param conn: la conexión abierta a la BD
+    :return: nada
+    """
+    conn.close()
 
 
 ## ------------------------------------------------------------

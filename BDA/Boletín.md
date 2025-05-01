@@ -85,3 +85,14 @@ def connect_db():
 ```
 
 
+## Ejercicio 6
+Completa la función ```disconnect_db()``` para desconectarte de forma adecuada de la BD.
+```python
+def disconnect_db(conn):
+	"""
+	Se desconecta de la BD.
+	:param conn: la conexión abierta a la BD
+	:return: nada
+	"""
+	conn.close()
+```
