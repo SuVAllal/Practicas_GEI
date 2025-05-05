@@ -13,6 +13,7 @@
 import sys
 import psycopg2
 import psycopg2.extras
+import psycopg2.errorcodes
 
 
 ## ------------------------------------------------------------
@@ -57,12 +58,19 @@ def create_table(conn):
             prezoart numeric(5,2) constraint ch_art_prezo_pos check (prezoart > 0)
         )
     """
-    
-    cur = conn.cursor() # Para ejecutar sentencias SQL hay que crear un cursor a partir de la conexión
-    cur.execute(sentencia_create)
-    conn.commit()
-    
-    print("Tabla artigo creada")
+    try:
+        cur = conn.cursor() # Para ejecutar sentencias SQL hay que crear un cursor a partir de la conexión
+        cur.execute(sentencia_create)
+        conn.commit()
+        print("Tabla artigo creada")
+    except psycopg2.Error(e) as e:
+        if e.pgcode == psycopg2.errorcodes.DUPLICATE_TABLE:
+            print(f"La tabla artigo ya existe. No se crea.")
+        else:
+            print(f"Error {e.pgcode}: {e.pgerror}")
+        conn.rollback()
+    finally:
+        cur.close()
 
 
 ## ------------------------------------------------------------

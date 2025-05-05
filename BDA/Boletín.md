@@ -234,3 +234,57 @@ Este error ocurre ya que la función ``create_table`` tal como la hemos escrito 
 Vuelve a ejecutar el programa, selecciona la opción de crear la tabla, y luego sal del programa pulsando q. ¿Qué ocurre ahora?
 >Vuelve a ocurrir lo mismo que en el ejercicio anterior. La única manera de evitar este error es hacer un `DROP TABLE` y borrar la tabla antes de volver a crearla.
 
+## Ejercicio 10
+Revisa la función ``create_table()``. Incluye el control transaccional y control de errores adecuado.
+```python
+import sys
+import psycopg2
+import psycopg2.errorcodes
+
+def create_table(conn):
+	"""
+	Crea la tabla artigo (codart, nomart, prezoart)
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	# Guardamos la sentencia a ejecutar en una variable aparte por comodidad
+	sentencia_create = """
+		create table artigo(
+			codart int constraint artigo_pkey primary key,
+			nomart varchar(30) not null,
+			prezoart numeric(5,2) constraint ch_art_prezo_pos check (prezoart > 0)
+		)
+	"""
+
+	try:
+		cur = conn.cursor() # Para ejecutar sentencias SQL hay que crear un cursor a partir de la conexión
+		cur.execute(sentencia_create)
+		conn.commit()
+		print("Tabla artigo creada")
+	except psycopg2.Error(e) as e:
+		if e.pgcode == psycopg2.errorcodes.DUPLICATE_TABLE:
+			print(f"La tabla artigo ya existe. No se crea")
+		else:
+			print(f"Error {e.pgcode}: {e.pgerror}")
+		conn.rollback()
+	finally:
+		cur.close()
+```
+Otra forma de hacerlo es:
+```python
+with conn.cursor() as cursor:
+	try:
+		cursor.execute(sentencia_create)
+		conn.commit()
+		print("Tabla artigo creada")
+	except psycopg2.Error(e) as e:
+		if e.pgcode == psycopg2.errorcodes.DUPLICATE_TABLE:
+			print(f"La tabla artigo ya existe. No se crea")
+		else:
+			print(f"Error {e.pgcode}: {e.pgerror}")
+		conn.rollback()
+```
+Si solo usamos el bloque de ``finally`` para cerrar el cursor, podemos optar por la alternativa de usar ``with``, que ya lo cierra por nosotros.
+>**NOTA:** Usando `with psycopg2.connect(...) as conn` ==NO== cerraría la conexión (sí que lo haría con psycopg v3).
+
