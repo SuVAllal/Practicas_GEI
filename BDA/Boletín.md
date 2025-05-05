@@ -286,5 +286,5 @@ with conn.cursor() as cursor:
 		conn.rollback()
 ```
 Si solo usamos el bloque de ``finally`` para cerrar el cursor, podemos optar por la alternativa de usar ``with``, que ya lo cierra por nosotros.
->**NOTA:** Usando `with psycopg2.connect(...) as conn` ==NO== cerraría la conexión (sí que lo haría con psycopg v3).
+>**NOTA:** Usando `with psycopg2.connect(...) as conn` NO cerraría la conexión (sí que lo haría con psycopg v3).
 
