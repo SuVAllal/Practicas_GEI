@@ -288,3 +288,5 @@ with conn.cursor() as cursor:
 Si solo usamos el bloque de ``finally`` para cerrar el cursor, podemos optar por la alternativa de usar ``with``, que ya lo cierra por nosotros.
 >**NOTA:** Usando `with psycopg2.connect(...) as conn` NO cerraría la conexión (sí que lo haría con psycopg v3).
 
+## Ejercicio 11
+Crea una nueva opción de menú para eliminar (`drop`) la tabla, e impleméntala en una función. A partir de ahora haz siempre un control correcto de las transacciones y de las excepciones.
