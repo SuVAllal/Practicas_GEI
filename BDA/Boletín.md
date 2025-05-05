@@ -230,3 +230,7 @@ psycopg2.errors.DuplicateTable: relation "artigo" already exists
 ```
 Este error ocurre ya que la función ``create_table`` tal como la hemos escrito intenta crear la tabla sin comprobar si ya existe, y PostgreSQL no permite crearla dos veces (si no usas algo como ``IF NOT EXISTS``).
 
+## Ejercicio 9
+Vuelve a ejecutar el programa, selecciona la opción de crear la tabla, y luego sal del programa pulsando q. ¿Qué ocurre ahora?
+>Vuelve a ocurrir lo mismo que en el ejercicio anterior. La única manera de evitar este error es hacer un `DROP TABLE` y borrar la tabla antes de volver a crearla.
+
