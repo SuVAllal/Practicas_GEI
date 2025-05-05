@@ -181,3 +181,52 @@ Indexes:
 Check constraints:
     "ch_art_prezo_pos" CHECK (prezoart > 0::numeric)
 ```
+
+## Ejercicio 8
+Ejecuta el programa y crea la tabla ``artigo``. Sin salir del programa, abre una sesión con ``psql`` y mira si la tabla está creada (ejecuta ``\d`` en ``psql`` para listar las tablas del usuario).
+Vuelve a seleccionar la opción de crear la tabla, y comprueba qué pasa.
+>Seguimos el mismo procedimiento para crear la tabla y comprobar si está creada que en el ejercicio anterior.
+
+Al volver a intentar crear la tabla sale lo siguiente:
+```python
+(python_entorno) vilalsus@LAPTOP-0QJEFQS0:/mnt/e/GEI/3º CURSO/BDA/Prácticas/Py
+thon$ python exerbda.py 
+Conectando a PosgreSQL...
+Conectado.
+
+      -- MENÚ --
+1 - Crear táboa artigo   
+q - Saír   
+
+Opción> 1
+Tabla artigo creada
+
+      -- MENÚ --
+1 - Crear táboa artigo   
+q - Saír
+
+Opción> 1
+Traceback (most recent call last):
+  File "/mnt/e/GEI/3º CURSO/BDA/Prácticas/Python/exerbda.py", line 103, in <module>
+    main()
+  File "/mnt/e/GEI/3º CURSO/BDA/Prácticas/Python/exerbda.py", line 97, in main
+    menu(conn)
+  File "/mnt/e/GEI/3º CURSO/BDA/Prácticas/Python/exerbda.py", line 85, in menu
+    create_table(conn)  
+    ^^^^^^^^^^^^^^^^^^
+  File "/mnt/e/GEI/3º CURSO/BDA/Prácticas/Python/exerbda.py", line 62, in create_table
+    cur.execute(sentencia_create)
+psycopg2.errors.DuplicateTable: relation "artigo" already exists
+
+(python_entorno) vilalsus@LAPTOP-0QJEFQS0:/mnt/e/GEI/3º CURSO/BDA/Prácticas/Py
+thon$
+```
+
+#### Qué ha pasado y por qué:
+* Al ejecutar la primera vez la opción "1", se ha creado la tabla ``artigo`` correctamente.
+* Luego, sin salir del programa lo hemos intentado otra vez, pero como la tabla ya existía, PostgreSQL ha lanzado un error:
+```python
+psycopg2.errors.DuplicateTable: relation "artigo" already exists
+```
+Este error ocurre ya que la función ``create_table`` tal como la hemos escrito intenta crear la tabla sin comprobar si ya existe, y PostgreSQL no permite crearla dos veces (si no usas algo como ``IF NOT EXISTS``).
+
