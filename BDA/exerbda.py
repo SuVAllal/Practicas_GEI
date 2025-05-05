@@ -44,11 +44,25 @@ def disconnect_db(conn):
 ## ------------------------------------------------------------
 def create_table(conn):
     """
-    Crea a táboa artigo (codart, nomart, prezoart)
-    :param conn: a conexión aberta á bd
+    Crea la tabla artigo (codart, nomart, prezoart)
+    :param conn: la conexión abierta a la bd
     :return: Nada
     """
-    print("Táboa artigo creada")
+    
+    # Guardamos la sentencia a ejecutar en una variable aparte por comodidad
+    sentencia_create = """
+        create table artigo(
+            codart int constraint artigo_pkey primary key,
+            nomart varchar(30) not null,
+            prezoart numeric(5,2) constraint ch_art_prezo_pos check (prezoart > 0)
+        )
+    """
+    
+    cur = conn.cursor() # Para ejecutar sentencias SQL hay que crear un cursor a partir de la conexión
+    cur.execute(sentencia_create)
+    conn.commit()
+    
+    print("Tabla artigo creada")
 
 
 ## ------------------------------------------------------------

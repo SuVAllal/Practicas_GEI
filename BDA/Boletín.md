@@ -1,6 +1,6 @@
 # Boletín PostgreSQL
 ## Ejercicio 2
-Crea un usuario en PostgreSQL identificado por una clave y con el privilegio createdb. Crea una base de datos con ese usuario.
+Crea un usuario en PostgreSQL identificado por una clave y con el privilegio ``createdb`` . Crea una base de datos con ese usuario.
 ```
 vilalsus@LAPTOP-0QJEFQS0:~/bda_python$ sudo -i
 
@@ -95,4 +95,89 @@ def disconnect_db(conn):
 	:return: nada
 	"""
 	conn.close()
+```
+
+## Ejercicio 7
+Completa la función ```create_table()``` para crear la tabla ```artigo``` con 3 campos: ```codart```, tipo ```int```, clave primaria; ```nomart```, tipo ```varchar(30)``` que no admite nulos, y ```prezoart```, tipo ```numeric(5, 2)``` que admite nulos y tiene una restricción que requiere que los precios deben ser positivos.
+No hagas ningún control transaccional ni de errores.
+
+| Campo    | Tipo          | Restricciones                   |
+| -------- | ------------- | ------------------------------- |
+| codart   | int           | Clave primaria                  |
+| nomart   | varchar(30)   | No admite nulos                 |
+| prezoart | numeric(5, 2) | Admite nulos, debe ser positivo |
+```python
+import sys
+import psycopg2
+
+def create_table(conn):
+	"""
+	Crea la tabla artigo (codart, nomart, prezoart)
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	# Guardamos la sentencia a ejecutar en una variable aparte por comodidad
+	sentencia_create = """
+		create table artigo(
+			codart int constraint artigo_pkey primary key,
+			nomart varchar(30) not null,
+			prezoart numeric(5,2) constraint ch_art_prezo_pos check (prezoart > 0)
+		)
+	"""
+
+	cur = conn.cursor() # Para ejecutar sentencias SQL hay que crear un cursor a partir de la conexión
+	cur.execute(sentencia_create)
+	conn.commit()
+
+	print("Tabla artigo creada)
+```
+
+#### Comprobamos que funciona:
+1. **Entramos al entorno virtual donde tengamos el script:**
+```bash
+source python_entorno/bin/activate
+cd ~/bda_python
+```
+2. **Ejecuta el script:**
+```bash
+python exerbda.py
+```
+3. **Sigue el menú del programa:**
+```
+  -- MENÚ --
+1 - Crear táboa artigo   
+q - Saír   
+Opción>
+
+```
+* Pulsa ```1``` y luego Enter para crear la tabla.
+* Debería mostrarse el mensaje:
+```
+Tabla artigo creada
+```
+* Luego pulsa ``q`` para salir del menú.
+4. **Verifica en PostgreSQL que la tabla existe:**
+```bash
+(python_entorno) vilalsus@LAPTOP-0QJEFQS0:~/bda_python$ sudo -i
+root@LAPTOP-0QJEFQS0:~ psql -h localhost -U vilalsus
+
+vilalsus=> \dt # para ver las tablas de esta BD
+         List of relations
+ Schema |  Name  | Type  |  Owner   
+--------+--------+-------+----------
+ public | artigo | table | vilalsus
+(1 row)
+
+vilalsus=> \d artigo # para ver los detalles de la tabla artigo
+                       Table "public.artigo"
+  Column  |         Type          | Collation | Nullable | Default
+----------+-----------------------+-----------+----------+---------
+ codart   | integer               |           | not null |
+ nomart   | character varying(30) |           | not null |
+ prezoart | numeric(5,2)          |           |          |
+Indexes:
+    "artigo_pkey" PRIMARY KEY, btree (codart)
+Check constraints:
+    "ch_art_prezo_pos" CHECK (prezoart > 0::numeric)
 ```
