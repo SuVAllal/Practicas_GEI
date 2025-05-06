@@ -142,6 +142,39 @@ def add_row(conn):
             else:
                 print(f"Error {e.pgcode}: {e.pgerror}")
             conn.rollback()
+            
+            
+## ------------------------------------------------------------
+def delete_row(conn):
+    """
+    Pide por teclado el código de un artículo y lo elimina
+    :param conn: la conexión abierta a la bd
+    :return: Nada
+    """
+    
+    scodigo = input('Código del artículo a eliminar: ')
+    codigo = None if scodigo == "" else int(scodigo)
+    
+    sentencia = """
+        delete from artigo
+        where codart = %s
+    """
+    
+    with conn.cursor() as cursor:
+        try:
+            cursor.execute(sentencia, (codigo,))
+            conn.commit()
+            
+            # Miramos el nº de filas afectadas por la sentencia para
+            # saber si alguna fila satisfacía el filtro del where
+            if cursor.rowcount == 0:
+                print(f"El artículo con código {codigo} no existe.")
+            else:
+                print(f"Artículo eliminado.")
+            
+        except psycopg2.Error as e:
+            print(f"Error {e.pgcode}: {e.perror}")
+            conn.rollback()
     
 
 ## ------------------------------------------------------------
@@ -155,6 +188,7 @@ def menu(conn):
 1 - Crear tabla artigo  
 2 - Eliminar tabla artigo
 3 - Añadir artículo
+4 - Eliminar artículo
 q - Salir   
 """
     while True:
@@ -168,6 +202,8 @@ q - Salir
             drop_table(conn)
         elif tecla == '3':
             add_row(conn)
+        elif tecla == '4':
+            delete_row(conn)
             
 
 ## ------------------------------------------------------------

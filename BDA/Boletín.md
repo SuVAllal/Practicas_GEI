@@ -415,3 +415,83 @@ vilalsus=> SELECT * FROM artigo;
      15 | Champú |     5.00
 (1 row)
 ```
+
+## Ejercicio 13
+Crea una opción para borrar un artículo a partir del código. Indica si se borró o si el código del artículo no existía.
+No olvides el control transaccional y de errores, pero recuerda que si una sentencia `delete` no borra ninguna fila porque no las encuentra (por ejemplo, ninguna satisface el filtro del `where`), eso no es un error.
+```python
+def delete_row(conn):
+	"""
+	Pide por teclado el código de un artículo y lo elimina
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	scodigo = input('Código del artículo a eliminar: ')
+	codigo = None if scodigo == "" else int(scodigo)
+
+	sentencia = """
+		delete from artigo
+		where codart = %s
+	"""
+
+	with conn.cursor() as cursor:
+		try:
+			cursor.execute(sentencia, (codigo,))
+			conn.commit()
+
+			# Miramos el nº de filas afectadas por la sentencia para
+			# saber si alguna fila satisfacía el filtro del where
+			if cursor.rowcount == 0:
+				print(f"El artículo con código {codigo} no existe.")
+			else:
+				print(f"Artículo eliminado.")
+		except psycopg2.Error as e:
+			print(f"Error {e.pgcode}: {e.pgerror}")
+			conn.rollback()
+
+# ¡Añadir la nueva opción al menú!
+```
+
+Para comprobar que funciona eliminamos alguna de las filas que creamos con la opción de `add_row()` y hacemos select en la tabla para ver si se ha eliminado:
+```bash
+      -- MENÚ --
+1 - Crear tabla artigo
+2 - Eliminar tabla artigo
+3 - Añadir artículo
+4 - Eliminar artículo
+q - Salir
+
+Opción> 3
+Código: 1
+Nombre del producto: Auriculares
+Precio del producto: 25.99
+Artículo añadido.
+
+vilalsus=> SELECT * FROM artigo;
+ codart |   nomart    | prezoart 
+--------+-------------+----------
+     15 | Champú      |     5.00
+      1 | Auriculares |    25.99
+(2 rows)
+
+#--------------------------------------
+
+      -- MENÚ --
+1 - Crear tabla artigo
+2 - Eliminar tabla artigo
+3 - Añadir artículo
+4 - Eliminar artículo
+q - Salir
+
+Opción> 4
+Código del artículo a eliminar: 1
+Artículo eliminado.
+
+
+vilalsus=> SELECT * FROM artigo;
+ codart | nomart | prezoart 
+--------+--------+----------
+     15 | Champú |     5.00
+(1 row)
+```
