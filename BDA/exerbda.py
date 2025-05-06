@@ -34,10 +34,11 @@ def connect_db():
 ## ------------------------------------------------------------
 def disconnect_db(conn):
     """
-    Se desconecta de la BD.
+    Se desconecta de la BD. Hace antes un commit de la transacción activa.
     :param conn: la conexión abierta a la BD
     :return: nada
     """
+    conn.commit()
     conn.close()
 
 
@@ -57,6 +58,12 @@ def create_table(conn):
             prezoart numeric(5,2) constraint ch_art_prezo_pos check (prezoart > 0)
         )
     """
+    
+    # Establecemos el nivel de aislamiento (cómo y cuándo los cambios hechos por una transacción son visibles para otras)
+    # READ_COMMITTED es el nivel predeterminado de PostgreSQL -> cada consulta dentro de una transacción ve solo los datos que fueron confirmados (commited) antes de iniciar esa consulta
+        # Ventaja: es seguro frente a lecturas sucias (no ves datos de transacciones no confirmadas)
+        # Desventaja: sí puede ver diferentes versiones de datos si otra transacción confirma mientras ocurre esta
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
     try:
         cur = conn.cursor() # Para ejecutar sentencias SQL hay que crear un cursor a partir de la conexión
         cur.execute(sentencia_create)
@@ -84,6 +91,7 @@ def drop_table(conn):
         drop table artigo
     """
     
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
     with conn.cursor() as cursor:
         try:
             cursor.execute(sentencia)
@@ -124,6 +132,7 @@ def add_row(conn):
             values(%(codigo)s, %(nombre)s, %(precio)s)
     """
     
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
     with conn.cursor() as cursor:
         try:
             cursor.execute(sentencia, {'codigo': codigo, 'nombre': nombre, 'precio': precio})
@@ -160,6 +169,7 @@ def delete_row(conn):
         where codart = %s
     """
     
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
     with conn.cursor() as cursor:
         try:
             cursor.execute(sentencia, (codigo,))

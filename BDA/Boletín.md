@@ -257,6 +257,11 @@ def create_table(conn):
 		)
 	"""
 
+    # Establecemos el nivel de aislamiento (cómo y cuándo los cambios hechos por una transacción son visibles para otras)
+    # READ_COMMITTED es el nivel predeterminado de PostgreSQL -> cada consulta dentro de una transacción ve solo los datos que fueron confirmados (commited) antes de iniciar esa consulta
+		# Ventaja: es seguro frente a lecturas sucias (no ves datos de transacciones no confirmadas)
+		# Desventaja: sí puede ver diferentes versiones de datos si otra transacción confirma mientras ocurre esta
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
 	try:
 		cur = conn.cursor() # Para ejecutar sentencias SQL hay que crear un cursor a partir de la conexión
 		cur.execute(sentencia_create)
@@ -306,6 +311,7 @@ def drop_table(conn):
 		drop table artigo
 	"""
 
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
 	with conn.cursor() as cursor:
 		try:
 			cursor.execute(sentencia)
@@ -377,6 +383,7 @@ def add_row(conn):
 	"""
 	# De esta forma le ponemos nombres a los valores
 
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
 	wit conn.cursor() as cursor:
 		try:
 			cursor.execute(sentencia, {'codigo': codigo, 'nombre': nombre, 'precio': precio})
@@ -435,6 +442,7 @@ def delete_row(conn):
 		where codart = %s
 	"""
 
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
 	with conn.cursor() as cursor:
 		try:
 			cursor.execute(sentencia, (codigo,))
@@ -495,3 +503,7 @@ vilalsus=> SELECT * FROM artigo;
      15 | Champú |     5.00
 (1 row)
 ```
+
+
+## Ejercicio 14
+Crea una opción para borrar todos los artículos cuyo nombre incluya un determinado texto, que pedirás por teclado. Indica cuántos artículos se borraron.
