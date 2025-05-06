@@ -290,3 +290,56 @@ Si solo usamos el bloque de ``finally`` para cerrar el cursor, podemos optar por
 
 ## Ejercicio 11
 Crea una nueva opción de menú para eliminar (`drop`) la tabla, e impleméntala en una función. A partir de ahora haz siempre un control correcto de las transacciones y de las excepciones.
+```python
+import sys
+import psycopg2
+import pyscopg2.errorcodes
+
+def drop_table(conn):
+	"""
+	Elimina la tabla artigo
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	sentencia = """
+		drop table artigo
+	"""
+
+	with conn.cursor() as cursor:
+		try:
+			cursor.execute(sentencia)
+			conn.commit()
+			print(f"Tabla artigo eliminada")
+		except psycopg2.Error(e) as e:
+			if e.pgcode == psycopg2.errorcodes.UNDEFINED_TABLE:
+				print(f"La tabla artigo no existe. No se borra")
+			else:
+				print(f"Error: {e.pgcode}: {e.pgerror}")
+			conn.rollback()
+
+
+## ------------------------------------------------------------
+def menu(conn):
+	"""
+	Imprime un menú de opciones, solicita la opción y ejecuta la función asociada.
+	'q' para salir.
+	"""
+
+	MENU_TEXT = """
+		-- MENÚ --
+1 - Crear tabla artigo
+2 - Eliminar tabla artigo
+q - Salir
+"""
+
+	while True:
+		print(MENU_TEXT)
+		tecla = input('Opción> ')
+		if tecla == 'q':
+			break
+		elif tecla == '1':
+			create_table(conn)
+		elif tecla == '2':
+			drop_table(conn)
+```
