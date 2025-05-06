@@ -240,6 +240,39 @@ def count_articles(conn):
             
 
 ## ------------------------------------------------------------
+def show_row(conn):
+    """
+    Pide por teclado el código de un artículo y muestra sus detalles
+    :param conn: la conexión abierta a la bd
+    :return: Nada
+    """
+    
+    scodigo = input('Código del artículo: ')
+    codigo = None if scodigo == "" else int(scodigo)
+    
+    sentencia = """
+        select nomart, prezoart
+        from artigo
+        where codart = %(codigo)s
+    """
+    
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor: # configuramos el cursor para que devuelva los resultados como diccionarios
+        try:
+            cursor.execute(sentencia, {'codigo': codigo})
+            resultado = cursor.fetchone()
+            if resultado: # si el código existía nos devuelve un resultado
+                # Al configurar el cursor ahora podemos acceder a los datos por el nombre de la columna
+                precio = resultado['prezoart'] if resultado['prezoart'] else "Desconocido" # RECUERDA QUE SE PODÍAN AÑADIR ARTÍCULOS SIN PRECIO
+                print(f"Código: {codigo}. Nombre: {resultado['nomart']}. Precio: {precio}")
+            else:
+                print(f"El artículo con el código {codigo} no existe.")
+        except psycopg2.Error as e:
+            print(f"Error {e.pgcode}: {e.pgerror}")
+            conn.rollback()
+                
+
+## ------------------------------------------------------------
 def menu(conn):
     """
     Imprime un menú de opciones, solicita la opción y ejecuta la función asociada.
@@ -253,6 +286,7 @@ def menu(conn):
 4 - Eliminar artículo
 5 - Eliminar artículos por nombre
 6 - Contar artículos
+7 - Mostrar artículo
 q - Salir   
 """
     while True:
@@ -272,6 +306,8 @@ q - Salir
             delete_by_name_fragment(conn)
         elif tecla == '6':
             count_articles(conn)
+        elif tecla == '7':
+            show_row(conn)
             
 
 ## ------------------------------------------------------------

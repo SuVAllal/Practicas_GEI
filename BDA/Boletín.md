@@ -1,6 +1,6 @@
 # Boletín PostgreSQL
 ## Ejercicio 2
-Crea un usuario en PostgreSQL identificado por una clave y con el privilegio ``createdb`` . Crea una base de datos con ese usuario.
+#### Crea un usuario en PostgreSQL identificado por una clave y con el privilegio ``createdb`` . Crea una base de datos con ese usuario.
 ```
 vilalsus@LAPTOP-0QJEFQS0:~/bda_python$ sudo -i
 
@@ -22,7 +22,7 @@ postgres=> CREATE DATABASE vilalsus;
 ```
 
 ## Ejercicio 3
-Conéctate con python a la base de datos. Comprueba los parámetros de la conexión viendo el valor del campo dsn o el método get_dsn_parameters de la conexión.
+#### Conéctate con python a la base de datos. Comprueba los parámetros de la conexión viendo el valor del campo dsn o el método get_dsn_parameters de la conexión.
 ```python
 >>> import psycopg2
 # Parámetros de conexión
@@ -47,8 +47,7 @@ El script es una plantilla que se irá completando en siguientes ejercicios. De 
 4. ```main()``` llama a ```connect_db()```, muestra el menú y luego cierra la conexión.
 
 ## Ejercicio 5
-Completa la función ```connect_db()``` para que se realice la conexión con la BD. Usa las credenciales y la BD creadas anteriormente. Desactiva el modo ```autocommit```.
-La función debe devolver la conexión obtenida.
+#### Completa la función ```connect_db()``` para que se realice la conexión con la BD. Usa las credenciales y la BD creadas anteriormente. Desactiva el modo ```autocommit```. La función debe devolver la conexión obtenida.
 
 > En [psycopg2.errors – Exception classes mapping PostgreSQL errors — Psycopg 2.9.10 documentation](https://www.psycopg.org/docs/errors.html) se puede ver una lista de errores (que corresponden con el estándar SQLSTATE) expuesta por psycopg2.
 ##### Formato para las excepciones:
@@ -86,7 +85,7 @@ def connect_db():
 
 
 ## Ejercicio 6
-Completa la función ```disconnect_db()``` para desconectarte de forma adecuada de la BD.
+#### Completa la función ```disconnect_db()``` para desconectarte de forma adecuada de la BD.
 ```python
 def disconnect_db(conn):
 	"""
@@ -98,8 +97,7 @@ def disconnect_db(conn):
 ```
 
 ## Ejercicio 7
-Completa la función ```create_table()``` para crear la tabla ```artigo``` con 3 campos: ```codart```, tipo ```int```, clave primaria; ```nomart```, tipo ```varchar(30)``` que no admite nulos, y ```prezoart```, tipo ```numeric(5, 2)``` que admite nulos y tiene una restricción que requiere que los precios deben ser positivos.
-No hagas ningún control transaccional ni de errores.
+#### Completa la función ```create_table()``` para crear la tabla ```artigo``` con 3 campos: ```codart```, tipo ```int```, clave primaria; ```nomart```, tipo ```varchar(30)``` que no admite nulos, y ```prezoart```, tipo ```numeric(5, 2)``` que admite nulos y tiene una restricción que requiere que los precios deben ser positivos. No hagas ningún control transaccional ni de errores.
 
 | Campo    | Tipo          | Restricciones                   |
 | -------- | ------------- | ------------------------------- |
@@ -183,8 +181,7 @@ Check constraints:
 ```
 
 ## Ejercicio 8
-Ejecuta el programa y crea la tabla ``artigo``. Sin salir del programa, abre una sesión con ``psql`` y mira si la tabla está creada (ejecuta ``\d`` en ``psql`` para listar las tablas del usuario).
-Vuelve a seleccionar la opción de crear la tabla, y comprueba qué pasa.
+#### Ejecuta el programa y crea la tabla ``artigo``. Sin salir del programa, abre una sesión con ``psql`` y mira si la tabla está creada (ejecuta ``\d`` en ``psql`` para listar las tablas del usuario). Vuelve a seleccionar la opción de crear la tabla, y comprueba qué pasa.
 >Seguimos el mismo procedimiento para crear la tabla y comprobar si está creada que en el ejercicio anterior.
 
 Al volver a intentar crear la tabla sale lo siguiente:
@@ -231,11 +228,11 @@ psycopg2.errors.DuplicateTable: relation "artigo" already exists
 Este error ocurre ya que la función ``create_table`` tal como la hemos escrito intenta crear la tabla sin comprobar si ya existe, y PostgreSQL no permite crearla dos veces (si no usas algo como ``IF NOT EXISTS``).
 
 ## Ejercicio 9
-Vuelve a ejecutar el programa, selecciona la opción de crear la tabla, y luego sal del programa pulsando q. ¿Qué ocurre ahora?
->Vuelve a ocurrir lo mismo que en el ejercicio anterior. La única manera de evitar este error es hacer un `DROP TABLE` y borrar la tabla antes de volver a crearla.
+#### Vuelve a ejecutar el programa, selecciona la opción de crear la tabla, y luego sal del programa pulsando q. ¿Qué ocurre ahora?
+Vuelve a ocurrir lo mismo que en el ejercicio anterior. La única manera de evitar este error es hacer un `DROP TABLE` y borrar la tabla antes de volver a crearla.
 
 ## Ejercicio 10
-Revisa la función ``create_table()``. Incluye el control transaccional y control de errores adecuado.
+#### Revisa la función ``create_table()``. Incluye el control transaccional y control de errores adecuado.
 ```python
 import sys
 import psycopg2
@@ -294,7 +291,7 @@ Si solo usamos el bloque de ``finally`` para cerrar el cursor, podemos optar por
 >**NOTA:** Usando `with psycopg2.connect(...) as conn` NO cerraría la conexión (sí que lo haría con psycopg v3).
 
 ## Ejercicio 11
-Crea una nueva opción de menú para eliminar (`drop`) la tabla, e impleméntala en una función. A partir de ahora haz siempre un control correcto de las transacciones y de las excepciones.
+#### Crea una nueva opción de menú para eliminar (`drop`) la tabla, e impleméntala en una función. A partir de ahora haz siempre un control correcto de las transacciones y de las excepciones.
 ```python
 import sys
 import psycopg2
@@ -351,10 +348,7 @@ q - Salir
 ```
 
 ## Ejercicio 12
-Crea una nueva función que pida por teclado un código, nombre y precio (debe ser posible omitir el precio) e inserte una fila en la tabla artigo.
-Haz un control de errores de forma que la persona que use el programa no tenga que comprender conceptos como claves primarias o restricciones del modelo relacional.
-Puedes usar la función `input(<prompt>)` para recoger datos como strings, y las funciones de conversión `int(<string>)` y `float(<string>)`.
-No es necesario hacer un control exhaustivo de la entrada de datos.
+#### Crea una nueva función que pida por teclado un código, nombre y precio (debe ser posible omitir el precio) e inserte una fila en la tabla artigo. Haz un control de errores de forma que la persona que use el programa no tenga que comprender conceptos como claves primarias o restricciones del modelo relacional. Puedes usar la función `input(<prompt>)` para recoger datos como strings, y las funciones de conversión `int(<string>)` y `float(<string>)`. No es necesario hacer un control exhaustivo de la entrada de datos.
 ```python
 def add_row(conn):
 	"""
@@ -424,8 +418,7 @@ vilalsus=> SELECT * FROM artigo;
 ```
 
 ## Ejercicio 13
-Crea una opción para borrar un artículo a partir del código. Indica si se borró o si el código del artículo no existía.
-No olvides el control transaccional y de errores, pero recuerda que si una sentencia `delete` no borra ninguna fila porque no las encuentra (por ejemplo, ninguna satisface el filtro del `where`), eso no es un error.
+#### Crea una opción para borrar un artículo a partir del código. Indica si se borró o si el código del artículo no existía. No olvides el control transaccional y de errores, pero recuerda que si una sentencia `delete` no borra ninguna fila porque no las encuentra (por ejemplo, ninguna satisface el filtro del `where`), eso no es un error.
 ```python
 def delete_row(conn):
 	"""
@@ -506,7 +499,7 @@ vilalsus=> SELECT * FROM artigo;
 
 
 ## Ejercicio 14
-Crea una opción para borrar todos los artículos cuyo nombre incluya un determinado texto, que pedirás por teclado. Indica cuántos artículos se borraron.
+#### Crea una opción para borrar todos los artículos cuyo nombre incluya un determinado texto, que pedirás por teclado. Indica cuántos artículos se borraron.
 ```python
 def delete_by_name_fragment(conn):
 	"""
@@ -572,7 +565,7 @@ vilalsus=> SELECT * FROM artigo;
 
 
 ## Ejercicio 15
-Crea una opción que indique cuántos artículos hay almacenados en la base de datos.
+#### Crea una opción que indique cuántos artículos hay almacenados en la base de datos.
 > `fetchone()` devuelve la siguiente fila del resultado de la consulta como una tupla:
 > - Si hacemos `SELECT COUNT(*) FROM artigo;` entonces devuelve `(2,)` 
 > - Si hacemos `SELECT codart, nomart FROM artigo;` devolvería:
@@ -607,3 +600,44 @@ def count_articles(conn):
 
 # ¡Añadir la nueva opción al menú!
 ```
+
+
+## Ejercicio 16
+#### Crea una opción que muestre el detalle de un artículo (todos sus datos) a partir de su código, que debes pedir por teclado. Ten en cuenta que el código introducido puede no existir.
+```python
+def show_row(conn):
+    """
+    Pide por teclado el código de un artículo y muestra sus detalles
+    :param conn: la conexión abierta a la bd
+    :return: Nada
+    """
+
+    scodigo = input('Código del artículo: ')
+    codigo = None if scodigo == "" else int(scodigo)
+    
+    sentencia = """
+        select nomart, prezoart
+        from artigo
+        where codart = %(codigo)s
+    """
+
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor: # configuramos el cursor para que devuelva los resultados como diccionarios
+        try:
+            cursor.execute(sentencia, {'codigo': codigo})
+            resultado = cursor.fetchone()
+            if resultado: # si el código existía nos devuelve un resultado
+                # Al configurar el cursor ahora podemos acceder a los datos por el nombre de la columna
+                precio = resultado['prezoart'] if resultado['prezoart'] else "Desconocido" # RECUERDA QUE SE PODÍAN AÑADIR ARTÍCULOS SIN PRECIO
+                print(f"Código: {codigo}. Nombre: {resultado['nomart']}. Precio: {precio}")
+            else:
+                print(f"El artículo con el código {codigo} no existe.")
+        except psycopg2.Error as e:
+            print(f"Error {e.pgcode}: {e.pgerror}")
+            conn.rollback()
+
+
+# ¡Añadir la nueva opción al menú!
+```
+
+
