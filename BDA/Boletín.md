@@ -343,3 +343,75 @@ q - Salir
 		elif tecla == '2':
 			drop_table(conn)
 ```
+
+## Ejercicio 12
+Crea una nueva función que pida por teclado un código, nombre y precio (debe ser posible omitir el precio) e inserte una fila en la tabla artigo.
+Haz un control de errores de forma que la persona que use el programa no tenga que comprender conceptos como claves primarias o restricciones del modelo relacional.
+Puedes usar la función `input(<prompt>)` para recoger datos como strings, y las funciones de conversión `int(<string>)` y `float(<string>)`.
+No es necesario hacer un control exhaustivo de la entrada de datos.
+```python
+def add_row(conn):
+	"""
+	Pide por teclado código, nombre y precio e inserta el artículo
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	scodigo = input('Código: ') # recogemos el código como un string
+	# Convertimos el string en un int para insertarlo en la bd
+	if scodigo == "":
+		codigo = None
+	else:
+		codigo = int(scodigo)
+
+	snombre = input('Nombre del producto: ')
+	# Otra forma de escribir el if-else:
+	nombre = None if snombre == "" else snombre
+
+	sprecio = input('Precio del producto: ')
+	precio = None if sprecio == "" else float(sprecio)
+
+	sentencia = """
+		insert into artigo(codart, nomart, prezoart)
+			values(%(codigo)s, %(nombre)s, %(precio)s)
+	"""
+	# De esta forma le ponemos nombres a los valores
+
+	wit conn.cursor() as cursor:
+		try:
+			cursor.execute(sentencia, {'codigo': codigo, 'nombre': nombre, 'precio': precio})
+			conn.commit()
+			print(f"Artículo añadido.")
+		except psycopg2.Error as e:
+			if e.pgcode == psycopg2.errorcodes.UNIQUE_VIOLATION:
+				print(f"El artículo de código {codigo} ya existe. No se añade.)
+			elif e.pgcode == psycopg2.errorcodes.NOT_NULL_VIOLATION:
+				if e.dialog.column_name == "codart":
+					print(f"El código del artículo es obligatorio.")
+				elif e.diag.column_name == "nomart":
+					print(f"El nombre del artículo es obligatorio.")
+			elif e.pgcode == psycopg2.errorcodes.CHECK_VIOLATION:
+				print(f"El precio del artículo debe ser positivo.")
+			else:
+				print(f"Error {e.pgcode}: {e.pgerror}")
+			conn.rollback()
+
+
+# ¡Añadir la nueva opción al menú!
+```
+
+Para comprobar que funciona nos conectamos a nuestro usuario en PostgreSQL y hacemos un `select` en la tabla:
+```bash
+vilalsus=> \dt artigo
+         List of relations
+ Schema |  Name  | Type  |  Owner
+--------+--------+-------+----------
+ public | artigo | table | vilalsus
+(1 row)
+
+vilalsus=> SELECT * FROM artigo;
+ codart | nomart | prezoart 
+--------+--------+----------
+     15 | Champú |     5.00
+(1 row)
+```

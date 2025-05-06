@@ -26,7 +26,7 @@ def connect_db():
         conn = psycopg2.connect("")
         conn.autocommit = False
         return conn
-    except psycopg2.Error(e) as e:
+    except psycopg2.Error as e:
         print(f"Error de conexión: {e}")
         sys.exit(1)
 
@@ -62,7 +62,7 @@ def create_table(conn):
         cur.execute(sentencia_create)
         conn.commit()
         print("Tabla artigo creada")
-    except psycopg2.Error(e) as e:
+    except psycopg2.Error as e:
         if e.pgcode == psycopg2.errorcodes.DUPLICATE_TABLE:
             print(f"La tabla artigo ya existe. No se crea.")
         else:
@@ -89,13 +89,60 @@ def drop_table(conn):
             cursor.execute(sentencia)
             conn.commit()
             print(f"Tabla artigo eliminada")
-        except psycopg2.Error(e) as e:
+        except psycopg2.Error as e:
             if e.pgcode == psycopg2.errorcodes.UNDEFINED_TABLE:
                 print(f"La tabla artigo no existe. No se borra.")
             else:
                 print(f"Error {e.pgcode}: {e.pgerror}")
             conn.rollback()
 
+
+## ------------------------------------------------------------
+def add_row(conn):
+    """
+    Pide por teclado código, nombre y precio e inserta el artículo
+    :param conn: la conexión abierta a la bd
+    :return: Nada
+    """
+    
+    scodigo = input('Código: ') # recogemos el código como un string
+    # Convertimos el string en un int para insertarlo en la bd
+    if scodigo == "":
+        codigo = None
+    else:
+        codigo = int(scodigo) 
+        
+    snombre = input('Nombre del producto: ')
+    # Otra forma de escribir el if-else:
+    nombre = None if snombre == "" else snombre
+    
+    sprecio = input('Precio del producto: ')
+    precio = None if sprecio == "" else float(sprecio)
+    
+    sentencia = """
+        insert into artigo(codart, nomart, prezoart) 
+            values(%(codigo)s, %(nombre)s, %(precio)s)
+    """
+    
+    with conn.cursor() as cursor:
+        try:
+            cursor.execute(sentencia, {'codigo': codigo, 'nombre': nombre, 'precio': precio})
+            conn.commit()
+            print(f"Artículo añadido.")
+        except psycopg2.Error as e:
+            if e.pgcode == psycopg2.errorcodes.UNIQUE_VIOLATION:
+                print(f"El artículo de código {codigo} ya existe. No se añade.")
+            elif e.pgcode == psycopg2.errorcodes.NOT_NULL_VIOLATION:
+                if e.diag.column_name == "codart":
+                    print(f"El código del artículo es obligatorio.")
+                elif e.diag.column_name == "nomart":
+                    print(f"El nombre del artículo es obligatorio.")
+            elif e.pgcode == psycopg2.errorcodes.CHECK_VIOLATION:
+                print(f"El precio del artículo debe ser positivo.")
+            else:
+                print(f"Error {e.pgcode}: {e.pgerror}")
+            conn.rollback()
+    
 
 ## ------------------------------------------------------------
 def menu(conn):
@@ -107,6 +154,7 @@ def menu(conn):
       -- MENÚ --
 1 - Crear tabla artigo  
 2 - Eliminar tabla artigo
+3 - Añadir artículo
 q - Salir   
 """
     while True:
@@ -118,8 +166,10 @@ q - Salir
             create_table(conn)  
         elif tecla == '2':
             drop_table(conn)
+        elif tecla == '3':
+            add_row(conn)
             
-            
+
 ## ------------------------------------------------------------
 def main():
     """
