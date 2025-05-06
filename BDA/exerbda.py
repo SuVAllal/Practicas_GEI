@@ -214,6 +214,31 @@ def delete_by_name_fragment(conn):
             print(f"Error {e.pgcode}: {e.pgerror}")
             conn.rollback()
 
+
+## ------------------------------------------------------------
+def count_articles(conn):
+    """
+    Cuenta cuántos artículos hay almacenados en la base de datos.
+    :param conn: la conexión abierta a la bd
+    :return: Nada
+    """
+    
+    sentencia = """
+        SELECT COUNT(*) FROM artigo
+    """
+    
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+    with conn.cursor() as cursor:
+        try:
+            cursor.execute(sentencia)
+            resultado = cursor.fetchone() # devuelve la siguiente fila del resultado de la consulta como una tupla, en este caso devuelve (4,) si hay 4 artículos, p.e
+            total = resultado[0]
+            print(f"Hay {total} artículo(s) en la base de datos.")
+        except psycopg2.Error as e:
+            print(f"Error {e.pgcode}: {e.pgerror}")
+            conn.rollback()
+            
+
 ## ------------------------------------------------------------
 def menu(conn):
     """
@@ -227,6 +252,7 @@ def menu(conn):
 3 - Añadir artículo
 4 - Eliminar artículo
 5 - Eliminar artículos por nombre
+6 - Contar artículos
 q - Salir   
 """
     while True:
@@ -244,6 +270,8 @@ q - Salir
             delete_row(conn)
         elif tecla == '5':
             delete_by_name_fragment(conn)
+        elif tecla == '6':
+            count_articles(conn)
             
 
 ## ------------------------------------------------------------

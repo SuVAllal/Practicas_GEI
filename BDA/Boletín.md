@@ -570,3 +570,40 @@ vilalsus=> SELECT * FROM artigo;
 (1 row)
 ```
 
+
+## Ejercicio 15
+Crea una opción que indique cuántos artículos hay almacenados en la base de datos.
+> `fetchone()` devuelve la siguiente fila del resultado de la consulta como una tupla:
+> - Si hacemos `SELECT COUNT(*) FROM artigo;` entonces devuelve `(2,)` 
+> - Si hacemos `SELECT codart, nomart FROM artigo;` devolvería:
+> `print(cursor.fetchone())` -> (1, 'Lápiz')
+> `print(cursor.fetchone())` -> (2, 'Bolígrafo')
+> `print(cursor.fetchone())` -> None (si no hay más filas)   
+
+
+```python
+def count_articles(conn):
+	"""
+	Cuenta cuántos artículos hay almacenados en la base de datos.
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	sentencia = """
+		SELECT COUNT(*) FROM artigo
+	"""
+
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+	with conn.cursor() as cursor:
+		try:
+			cursor.execute(sentencia)
+			resultado = cursor.fetchone() # devuelve la siguiente fila del resultado de la consulta como una tupla, en este caso devuelve (2,) si hay 2 artículos en la BD
+			total = resultado[0] # guardamos solo el número
+			print(f"Hay {total} artículo(s) en la base de datos.")
+		except psycopg2.Error as e:
+			print(f"Error {e.pgcode}: {e.pgerror}")
+			conn.rollback()
+
+
+# ¡Añadir la nueva opción al menú!
+```
