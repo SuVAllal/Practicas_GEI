@@ -507,3 +507,66 @@ vilalsus=> SELECT * FROM artigo;
 
 ## Ejercicio 14
 Crea una opción para borrar todos los artículos cuyo nombre incluya un determinado texto, que pedirás por teclado. Indica cuántos artículos se borraron.
+```python
+def delete_by_name_fragment(conn):
+	"""
+	Pide por teclado un fragmento de texto y elimina todos los artículos cuyo nombre lo contenga.
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	fragmento = input('Texto a buscar para eliminar: ')
+
+	# ILIKE es como LIKE pero no distingue entre mayúsculas y minúsculas
+	sentencia = """
+		DELETE FROM artigo
+		WHERE nomart ILIKE %s
+	"""
+
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+	with conn.cursor() as cursor:
+		try:
+			cursor.execute(sentencia, ('%' + fragmento + '%',)) # buscamos cualquier artículo cuyo nombre CONTENGA (por eso va entre %) el texto introducido 
+			eliminados = cursor.rowcount
+			conn.commit()
+			print(f"Se han eliminado {eliminados} artículos(s).")
+		except psycopg2.Error as e:
+			print(f"Error {e.pgcode}: {e.pgerror}")
+			conn.rollback()
+
+# ¡Añadir la nueva opción al menú!
+```
+
+Para comprobar que funciona:
+```bash
+vilalsus=> SELECT * FROM artigo;
+ codart |         nomart          | prezoart 
+--------+-------------------------+----------
+     15 | Champú                  |     5.00
+      1 | Pan                     |     0.67
+      2 | Pancito rico            |     0.99
+      3 | Supermega pan delicioso |     2.99
+(4 rows)
+
+# ------------------------------------------
+
+      -- MENÚ --
+1 - Crear tabla artigo
+2 - Eliminar tabla artigo
+3 - Añadir artículo
+4 - Eliminar artículo
+5 - Eliminar artículos por nombre
+q - Salir
+
+Opción> 5   
+Texto a buscar para eliminar: pan
+Se han eliminado 3 artículo(s).
+
+# ------------------------------------------
+vilalsus=> SELECT * FROM artigo;
+ codart | nomart | prezoart 
+--------+--------+----------
+     15 | Champú |     5.00
+(1 row)
+```
+

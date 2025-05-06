@@ -185,7 +185,34 @@ def delete_row(conn):
         except psycopg2.Error as e:
             print(f"Error {e.pgcode}: {e.perror}")
             conn.rollback()
+            
+
+## ------------------------------------------------------------
+def delete_by_name_fragment(conn):
+    """
+    Pide por teclado un fragmento de texto y elimina todos los artículos cuyo nombre lo contenga.
+    :param conn: la conexión abierta a la bd
+    :return: Nada
+    """
     
+    fragmento = input('Texto a buscar para eliminar: ')
+    
+    # ILIKE es como LIKE pero no distingue entre mayúsculas y minúsculas
+    sentencia = """
+        DELETE FROM artigo
+        WHERE nomart ILIKE %s
+    """
+    
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+    with conn.cursor() as cursor:
+        try:
+            cursor.execute(sentencia, ('%' + fragmento + '%',)) # buscamos cualquier artículo cuyo nombre CONTENGA (por eso va entre %) el texto introducido 
+            eliminados = cursor.rowcount
+            conn.commit()
+            print(f"Se han eliminado {eliminados} artículo(s).")
+        except psycopg2.Error as e:
+            print(f"Error {e.pgcode}: {e.pgerror}")
+            conn.rollback()
 
 ## ------------------------------------------------------------
 def menu(conn):
@@ -199,6 +226,7 @@ def menu(conn):
 2 - Eliminar tabla artigo
 3 - Añadir artículo
 4 - Eliminar artículo
+5 - Eliminar artículos por nombre
 q - Salir   
 """
     while True:
@@ -214,6 +242,8 @@ q - Salir
             add_row(conn)
         elif tecla == '4':
             delete_row(conn)
+        elif tecla == '5':
+            delete_by_name_fragment(conn)
             
 
 ## ------------------------------------------------------------
