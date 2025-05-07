@@ -241,11 +241,12 @@ def count_articles(conn):
             
 
 ## ------------------------------------------------------------
-def show_row(conn):
+def show_row(conn, control_tx=True):
     """
     Pide por teclado el código de un artículo y muestra sus detalles
     :param conn: la conexión abierta a la bd
-    :return: Nada
+    :param control_tx: indica si debemos hacer o no control transaccional
+    :return: El código del artículo, si existe. None en otro caso.
     """
     
     scodigo = input('Código del artículo: ')
@@ -257,7 +258,11 @@ def show_row(conn):
         where codart = %(codigo)s
     """
     
-    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+    if control_tx:
+        conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+    
+    retorno = None
+    
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor: # configuramos el cursor para que devuelva los resultados como diccionarios
         try:
             cursor.execute(sentencia, {'codigo': codigo})
@@ -266,12 +271,19 @@ def show_row(conn):
                 # Al configurar el cursor ahora podemos acceder a los datos por el nombre de la columna
                 precio = resultado['prezoart'] if resultado['prezoart'] else "Desconocido" # RECUERDA QUE SE PODÍAN AÑADIR ARTÍCULOS SIN PRECIO
                 print(f"Código: {codigo}. Nombre: {resultado['nomart']}. Precio: {precio}")
+                retorno = codigo
             else:
                 print(f"El artículo con el código {codigo} no existe.")
-            conn.commit()
+            
+            if control_tx:
+                conn.commit()
+                
         except psycopg2.Error as e:
             print(f"Error {e.pgcode}: {e.pgerror}")
-            conn.rollback()
+            if control_tx:
+                conn.rollback()
+                
+        return retorno
                 
 
 ## ------------------------------------------------------------

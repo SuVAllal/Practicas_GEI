@@ -750,3 +750,53 @@ def show_by_price(conn):
 # ¡Añadir la nueva opción al menú!
 ```
 
+## Ejercicio 19
+#### Modifica la función que muestra el detalle de un artículo para que:
+**1. Admita un parámetro adicional `control_tx` (opcional, predeterminado `True`) para especificar si queremos o no control transaccional (si es `False`no hará commit/rollback)**
+**2. Devuelva el código del artículo, si este existe, y `None` en otro caso (o bien no existe, o se produjo un error)**
+```python
+def show_row(conn, control_tx=True):
+    """
+    Pide por teclado el código de un artículo y muestra sus detalles
+    :param conn: la conexión abierta a la bd
+    :param control_tx: indica si debemos hacer o no control transaccional
+    :return: El código del artículo, si existe. None en otro caso.
+    """
+
+    scodigo = input('Código del artículo: ')
+    codigo = None if scodigo == "" else int(scodigo)
+
+    sentencia = """
+        select nomart, prezoart
+        from artigo
+        where codart = %(codigo)s
+    """
+
+    if control_tx:
+        conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+
+    retorno = None
+
+    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor: # configuramos el cursor para que devuelva los resultados como diccionarios
+        try:
+            cursor.execute(sentencia, {'codigo': codigo})
+            resultado = cursor.fetchone()
+            if resultado: # si el código existía nos devuelve un resultado
+                # Al configurar el cursor ahora podemos acceder a los datos por el nombre de la columna
+                precio = resultado['prezoart'] if resultado['prezoart'] else "Desconocido" # RECUERDA QUE SE PODÍAN AÑADIR ARTÍCULOS SIN PRECIO
+                print(f"Código: {codigo}. Nombre: {resultado['nomart']}. Precio: {precio}")
+                retorno = codigo
+            else:
+                print(f"El artículo con el código {codigo} no existe.")
+                
+            if control_tx:
+                conn.commit()
+                
+        except psycopg2.Error as e:
+            print(f"Error {e.pgcode}: {e.pgerror}")
+            if control_tx:
+                conn.rollback()
+
+        return retorno
+```
+
