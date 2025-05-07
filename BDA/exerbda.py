@@ -173,7 +173,6 @@ def delete_row(conn):
     with conn.cursor() as cursor:
         try:
             cursor.execute(sentencia, (codigo,))
-            conn.commit()
             
             # Miramos el nº de filas afectadas por la sentencia para
             # saber si alguna fila satisfacía el filtro del where
@@ -182,6 +181,7 @@ def delete_row(conn):
             else:
                 print(f"Artículo eliminado.")
             
+            conn.commit()
         except psycopg2.Error as e:
             print(f"Error {e.pgcode}: {e.perror}")
             conn.rollback()
@@ -208,8 +208,8 @@ def delete_by_name_fragment(conn):
         try:
             cursor.execute(sentencia, ('%' + fragmento + '%',)) # buscamos cualquier artículo cuyo nombre CONTENGA (por eso va entre %) el texto introducido 
             eliminados = cursor.rowcount
-            conn.commit()
             print(f"Se han eliminado {eliminados} artículo(s).")
+            conn.commit()
         except psycopg2.Error as e:
             print(f"Error {e.pgcode}: {e.pgerror}")
             conn.rollback()
@@ -234,6 +234,7 @@ def count_articles(conn):
             resultado = cursor.fetchone() # devuelve la siguiente fila del resultado de la consulta como una tupla, en este caso devuelve (4,) si hay 4 artículos, p.e
             total = resultado[0]
             print(f"Hay {total} artículo(s) en la base de datos.")
+            conn.commit()
         except psycopg2.Error as e:
             print(f"Error {e.pgcode}: {e.pgerror}")
             conn.rollback()
@@ -267,6 +268,7 @@ def show_row(conn):
                 print(f"Código: {codigo}. Nombre: {resultado['nomart']}. Precio: {precio}")
             else:
                 print(f"El artículo con el código {codigo} no existe.")
+            conn.commit()
         except psycopg2.Error as e:
             print(f"Error {e.pgcode}: {e.pgerror}")
             conn.rollback()
@@ -300,7 +302,42 @@ def show_all_rows(conn):
                 precio = fila['prezoart'] if fila['prezoart'] else 'Desconocido'
                 print(f"Código: {fila['codart']}. Nombre: {fila['nomart']}. Precio: {precio}")
                 fila = cursor.fetchone()
+            conn.commit()
                 
+        except psycopg2.Error as e:
+            print(f"Error {e.pgcode}: {e.pgerror}")
+            conn.rollback()
+
+
+## ------------------------------------------------------------
+def show_by_price(conn):
+    """
+    Pide un precio por teclado y muestra los detalles de los artículos 
+    que son más caros. Muestra también cuántos artículos se encontraron.
+    :param conn: la conexión abierta a la bd
+    :return: Nada
+    """
+    
+    sprecio = input('Precio base: ')
+    precio = None if sprecio == "" else float(sprecio)
+    
+    sentencia = """
+        select codart, nomart, prezoart
+        from artigo
+        where prezoart > %(precio)s
+    """
+    
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+    with conn.cursor(cursor_factory = psycopg2.extras.DictCursor) as cursor:
+        try:
+            cursor.execute(sentencia, {'precio': precio})
+            rows = cursor.fetchall()
+            for row in rows:
+                precio = row['prezoart'] if row['prezoart'] else 'Desconocido'
+                print(f"Código: {row['codart']}. Nombre: {row['nomart']}. Precio: {precio}")
+            
+            print(f"Hay {cursor.rowcount} artículos que cuestan más de {sprecio}.") # usamos sprecio y no precio ya que precio se ha modificado al imprimir las filas, ya no es el dado, sino el último impreso
+            conn.commit()
         except psycopg2.Error as e:
             print(f"Error {e.pgcode}: {e.pgerror}")
             conn.rollback()
@@ -322,6 +359,7 @@ def menu(conn):
 6 - Contar artículos
 7 - Mostrar artículo
 8 - Listar todos los artículos
+9 - Mostrar por precio
 q - Salir   
 """
     while True:
@@ -345,6 +383,8 @@ q - Salir
             show_row(conn)
         elif tecla == '8':
             show_all_rows(conn)
+        elif tecla == '9':
+            show_by_price(conn)
             
 
 ## ------------------------------------------------------------

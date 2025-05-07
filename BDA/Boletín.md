@@ -439,7 +439,6 @@ def delete_row(conn):
 	with conn.cursor() as cursor:
 		try:
 			cursor.execute(sentencia, (codigo,))
-			conn.commit()
 
 			# Miramos el nº de filas afectadas por la sentencia para
 			# saber si alguna fila satisfacía el filtro del where
@@ -447,6 +446,8 @@ def delete_row(conn):
 				print(f"El artículo con código {codigo} no existe.")
 			else:
 				print(f"Artículo eliminado.")
+
+			conn.commit()
 		except psycopg2.Error as e:
 			print(f"Error {e.pgcode}: {e.pgerror}")
 			conn.rollback()
@@ -521,8 +522,8 @@ def delete_by_name_fragment(conn):
 		try:
 			cursor.execute(sentencia, ('%' + fragmento + '%',)) # buscamos cualquier artículo cuyo nombre CONTENGA (por eso va entre %) el texto introducido 
 			eliminados = cursor.rowcount
-			conn.commit()
 			print(f"Se han eliminado {eliminados} artículos(s).")
+			conn.commit()
 		except psycopg2.Error as e:
 			print(f"Error {e.pgcode}: {e.pgerror}")
 			conn.rollback()
@@ -593,6 +594,7 @@ def count_articles(conn):
 			resultado = cursor.fetchone() # devuelve la siguiente fila del resultado de la consulta como una tupla, en este caso devuelve (2,) si hay 2 artículos en la BD
 			total = resultado[0] # guardamos solo el número
 			print(f"Hay {total} artículo(s) en la base de datos.")
+			conn.commit()
 		except psycopg2.Error as e:
 			print(f"Error {e.pgcode}: {e.pgerror}")
 			conn.rollback()
@@ -632,6 +634,7 @@ def show_row(conn):
                 print(f"Código: {codigo}. Nombre: {resultado['nomart']}. Precio: {precio}")
             else:
                 print(f"El artículo con el código {codigo} no existe.")
+			conn.commit()
         except psycopg2.Error as e:
             print(f"Error {e.pgcode}: {e.pgerror}")
             conn.rollback()
@@ -671,6 +674,7 @@ def show_all_rows(conn):
 				precio = fila['prezoart'] if fila['prezoart'] else 'Desconocido'
 				print(f"Código: {fila['codart']}. Nombre: {fila['nomart']}. Precio: {precio}")
 				fila = cursor.fetchone()
+			conn.commit()
 				
 		except psycopg2.Error as e:
 			print(f"Error {e.pgcode}: {e.pgerror}")
@@ -705,3 +709,44 @@ while row:
 	print(row)
 	row = cur.fetchone()
 ```
+
+
+## Ejercicio 18
+#### Crea una opción que muestre un listado completo de todos los artículos que tengan un precio mayor que un precio dado (que pedirás por teclado). Muestra al final del listado cuántos artículos hay en ese listado (¡no uses un contador en el bucle que procesa las filas!). En este caso, usa la función `fetchall()` del cursos.
+```python
+def show_by_price(conn):
+	"""
+	Pide un precio por teclado y muestra los detalles de los artículos
+	que son más caros. Muestra también cuántos artículos se encontraron.
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	sprecio = input('Precio base: ')
+	precio = None if sprecio == "" else float(sprecio)
+	
+	sentencia = """
+		select codart, nomart, prezoart
+		from artigo
+		where prezoart > %(precio)s
+	"""
+	
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+	with conn.cursor(cursor_factory = psycopg2.extras.DictCursor) as cursor:
+		try:
+			cursor.execute(sentencia, {'precio': precio})
+			rows = fecthall()
+			for row in rows:
+				precio = row['prezoart'] if row['prezoart'] else 'Desconocido'
+				print(f"Código: {row['codart']}. Nombre: {row['nomart']}. Precio: {precio}")
+				
+			print(f"Hay {cursor.rowcount} artículos que cuestan más de {sprecio}") # usamos sprecio y no precio ya que precio se ha modificado al imprimir las filas, ya no es el dado, sino el último impreso
+			conn.commit()
+		except psycopg2.Error as e:
+			print(f"Error {e.pgcode}: {e.pgerror}")
+			conn.rollback()
+
+
+# ¡Añadir la nueva opción al menú!
+```
+
