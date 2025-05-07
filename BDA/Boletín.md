@@ -800,3 +800,51 @@ def show_row(conn, control_tx=True):
         return retorno
 ```
 
+## Ejercicio 20
+#### Crea una opción para modificar el artículo. Pide por teclado el código del artículo, muestra los datos actuales, solicita un nuevo nombre y precio, y realiza la modificación. Puedes utilizar la nueva versión de la función que pide el código y muestra el detalle del artículo.
+```python
+def update_row(conn):
+    """
+    Pide por teclado el código. Si el artículo existe, muestra sus detalles,
+    pide el nuevo nombre y precio y actualiza el artículo.
+    :param conn: la conexión abierta a la bd
+    :return: Nada
+    """
+
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+    codigo = show_row(conn, control_tx=False)
+
+    if codigo is None:
+        conn.rollback()
+        return
+
+    snombre = input('Nuevo nombre: ')
+    nombre = None if snombre == "" else snombre
+
+    sprecio = input('Nuevo precio: ')
+    precio = None if sprecio == "" else float(sprecio)
+
+    sentencia = """
+        update artigo
+        set nomart = %(nombre)s, prezoart = %(precio)s
+        where codart = %(codigo)s
+    """
+
+    with conn.cursor() as cursor:
+        try:
+            cursor.execute(sentencia, {'nombre': nombre, 'precio': precio, 'codigo': codigo})
+            conn.commit()
+            print(f"Artículo actualizado.")
+        except psycopg2.Error as e:
+            if e.pgcode == psycopg2.errorcodes.NOT_NULL_VIOLATION:
+                print(f"El nombre del artículo es obligatorio.")
+            elif e.pgcode == psycopg2.errorcodes.CHECK_VIOLATION:
+                print(f"El precio debe ser positivo.")
+            else:
+                print(f"Error {e.pgcode}: {e.pgerror}")
+            conn.rollback()
+```
+
+> Se podría valorar poner el modo serializable en el caso de que no se considere válido modificar un artículo que fue modificado por otra transacción entre la ejecución de `show_row()` y el `update`.
+> En ese caso, debería controlarse el error `SERIALIZATION_FAILURE`.
+
