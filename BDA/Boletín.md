@@ -641,3 +641,67 @@ def show_row(conn):
 ```
 
 
+## Ejercicio 17
+#### Crea una opción que muestre un listado completo de todos los artículos. Usa un bucle y la función `fetchone()` del cursor.
+```python
+def show_all_rows(conn):
+	"""
+	Muestra todos los artículos de la tabla artigo uno por uno usando fetchone().
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	sentencia = """
+		select codart, nomart, prezoart
+		from artigo
+		order by codart
+	"""
+
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+	with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+		try:
+			cursor.execute(sentencia)
+			fila = cursor.fetchone()
+			if not fila:
+				print(f"No hay artículos en la base de datos.")
+				return
+			
+			print(f"\nListado de artículos:")
+			while fila:
+				precio = fila['prezoart'] if fila['prezoart'] else 'Desconocido'
+				print(f"Código: {fila['codart']}. Nombre: {fila['nomart']}. Precio: {precio}")
+				fila = cursor.fetchone()
+				
+		except psycopg2.Error as e:
+			print(f"Error {e.pgcode}: {e.pgerror}")
+			conn.rollback()
+
+
+# ¡Añadir la nueva opción al menú!
+```
+
+**NOTA SOBRE `fetchone()` y `fetchall()`:**
+* `fetchone()` devuelve la siguiente fila, o `None` si no existe.
+* `fetchall()` devuelve una lista con todas las filas restantes (inicialmente serán todas las filas).
+- Cuando la consulta devuelve una sola fila, usaremos `fetchone()`.
+- Cuando la consulta devuelve una colección de filas tenemos dos opciones:
+	- Usar `cur.fetchall()` y un bucle `for` para recorrer la colección.
+		- Ventaja: es muy sencillo.
+		- Desventaja: puede tener una gran demanda de memoria, ya que recupera todas las filas.
+```python
+cur.execute("""select id, nome, datanac from persona""")
+rows = cur.fetchall()
+for row in rows:
+	print(row)
+```
+
+- Usar ```cur.fetchone()``` en un bucle:
+		- Ventaja: menor demanda de recursos.
+		- Desventaja: código ligeramente más complejo.
+```python
+cur.execute("""select id, nome, datanac from persona""")
+row = cur.fetchone()
+while row:
+	print(row)
+	row = cur.fetchone()
+```

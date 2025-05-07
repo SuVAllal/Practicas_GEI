@@ -273,6 +273,40 @@ def show_row(conn):
                 
 
 ## ------------------------------------------------------------
+def show_all_rows(conn):
+    """
+    Muestra todos los artículos de la tabla artigo uno por uno usando fetchone().
+    :param conn: la conexión abierta a la bd
+    :return: Nada
+    """
+    
+    sentencia = """
+        select codart, nomart, prezoart
+        from artigo
+        order by codart
+    """
+    
+    conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED
+    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        try:
+            cursor.execute(sentencia)
+            fila = cursor.fetchone()
+            if not fila:
+                print(f"No hay artículos en la base de datos.")
+                return
+            
+            print(f"\nListado de artículos:")
+            while fila:
+                precio = fila['prezoart'] if fila['prezoart'] else 'Desconocido'
+                print(f"Código: {fila['codart']}. Nombre: {fila['nomart']}. Precio: {precio}")
+                fila = cursor.fetchone()
+                
+        except psycopg2.Error as e:
+            print(f"Error {e.pgcode}: {e.pgerror}")
+            conn.rollback()
+
+
+## ------------------------------------------------------------
 def menu(conn):
     """
     Imprime un menú de opciones, solicita la opción y ejecuta la función asociada.
@@ -287,6 +321,7 @@ def menu(conn):
 5 - Eliminar artículos por nombre
 6 - Contar artículos
 7 - Mostrar artículo
+8 - Listar todos los artículos
 q - Salir   
 """
     while True:
@@ -308,6 +343,8 @@ q - Salir
             count_articles(conn)
         elif tecla == '7':
             show_row(conn)
+        elif tecla == '8':
+            show_all_rows(conn)
             
 
 ## ------------------------------------------------------------
