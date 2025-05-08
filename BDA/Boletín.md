@@ -898,3 +898,9 @@ def update_price(conn):
 # ¡Añadir la nueva opción al menú!
 ```
 
+## Ejercicio 22
+#### Modifica la funcionalidad anterior, de forma que puedas para la ejecución del programa después de la sentencia `update` pero antes de confirmar la transacción (por ejemplo, pidiendo un valor por teclado). Abre 2 sesiones en las que ejecutas el programa y ejecuta la opción de incrementar el precio del mismo artículo al mismo tiempo. ¿Qué ocurre?
+> La modificación es la línea de `input("PULSA ENTER")`.
+
+Al ejecutar las dos sesiones, si dejamos la primera en el momento de `input("PULSA ENTER")`, e intentamos ejecutar la segunda, la segunda se queda colgada. Pulsamos `ENTER` en la primera, en ella se actualiza el precio, pero en la segunda salta el error de `SERIALIZATION FAILURE`.
+
