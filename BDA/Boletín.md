@@ -859,6 +859,91 @@ def update_price(conn):
 	:return: Nada
 	"""
 
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMITTED
+	
+	codigo = show_row(conn, control_tx=False)
+	if codigo is None:
+		conn.rollback()
+		return
+		
+	sincremento = input('Incremento (%): ')
+	incremento = None if sincremento == "" else float(sincremento)
+	
+	sentencia = """
+		update artigo
+		set prezoart = prezoart + prezoart * %(inc)s / 100.0
+		where codart = %(codigo)s
+	"""
+	
+	with conn.cursor() as cursor:
+		try:
+			cursor.execute(sentencia, {'inc': incremento, 'codigo': codigo})
+			conn.commit()
+			print("Artículo actualizado")
+		except psycopg2.Error as e:
+			if e.pgcode == psycopg2.errorcodes.CHECK_VIOLATION:
+				print("El precio debe ser positivo.")
+			else:
+				print(f"Error: {e.pgcode}: {e.pgerror}")
+			conn.rollback()
+
+
+# ¡Añadir la nueva opción al menú!
+```
+
+## Ejercicio 22
+#### Modifica la funcionalidad anterior, de forma que puedas para la ejecución del programa después de la sentencia `update` pero antes de confirmar la transacción (por ejemplo, pidiendo un valor por teclado). Abre 2 sesiones en las que ejecutas el programa y ejecuta la opción de incrementar el precio del mismo artículo al mismo tiempo. ¿Qué ocurre?
+```python
+def update_price(conn):
+	"""
+	Pide por teclado el código. Si el artículo existe, muestra sus detalles,
+	pide un porcentaje de incremento de precio y actualiza el artículo.
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_READ_COMITTED
+	
+	codigo = show_row(conn, control_tx=False)
+	if codigo is None:
+		conn.rollback()
+		return
+		
+	sincremento = input('Incremento (%): ')
+	incremento = None if sincremento == "" else float(sincremento)
+	
+	sentencia = """
+		update artigo
+		set prezoart = prezoart + prezoart * %(inc)s / 100.0
+		where codart = %(codigo)s
+	"""
+	
+	with conn.cursor() as cursor:
+		try:
+			cursor.execute(sentencia, {'inc': incremento, 'codigo': codigo})
+			input("PULSA ENTER")
+			conn.commit()
+			print("Artículo actualizado")
+		except psycopg2.Error as e:
+			if e.pgcode == psycopg2.errorcodes.CHECK_VIOLATION:
+				print("El precio debe ser positivo.")
+			else:
+				print(f"Error: {e.pgcode}: {e.pgerror}")
+			conn.rollback()
+```
+
+Al ejecutar las dos terminales, si en la terminal 1 nos quedamos en el momento del `PULSA ENTER` y probamos a hacer lo mismo en la terminal 2, en la terminal 2 salta un error diciendo que el código no existe, mientras que en la terminal 1 se actualiza.
+## Ejercicio 23
+#### Cambia el modo de aislamiento en esta funcionalidad, poniéndolo a `SERIALIZABLE`. Modifica el código para garantizar un buen control de errores y una buena usabilidad del programa.
+```python
+def update_price(conn):
+	"""
+	Pide por teclado el código. Si el artículo existe, muestra sus detalles,
+	pide un porcentaje de incremento de precio y actualiza el artículo.
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
 	# Este caso lo hacemos con SERIALIZABLE por motivos didácticos
 	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE
 	
@@ -898,9 +983,4 @@ def update_price(conn):
 # ¡Añadir la nueva opción al menú!
 ```
 
-## Ejercicio 22
-#### Modifica la funcionalidad anterior, de forma que puedas para la ejecución del programa después de la sentencia `update` pero antes de confirmar la transacción (por ejemplo, pidiendo un valor por teclado). Abre 2 sesiones en las que ejecutas el programa y ejecuta la opción de incrementar el precio del mismo artículo al mismo tiempo. ¿Qué ocurre?
-> La modificación es la línea de `input("PULSA ENTER")`.
-
-Al ejecutar las dos sesiones, si dejamos la primera en el momento de `input("PULSA ENTER")`, e intentamos ejecutar la segunda, la segunda se queda colgada. Pulsamos `ENTER` en la primera, en ella se actualiza el precio, pero en la segunda salta el error de `SERIALIZATION FAILURE`.
-
+En este caso al ejecutar las dos sesiones, si dejamos la primera en el momento de `input("PULSA ENTER")`, e intentamos ejecutar la segunda, la segunda se queda colgada. Pulsamos `ENTER` en la primera, en ella se actualiza el precio, pero en la segunda salta el error de `SERIALIZATION FAILURE`.
