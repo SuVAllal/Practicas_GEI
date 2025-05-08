@@ -848,3 +848,53 @@ def update_row(conn):
 > Se podría valorar poner el modo serializable en el caso de que no se considere válido modificar un artículo que fue modificado por otra transacción entre la ejecución de `show_row()` y el `update`.
 > En ese caso, debería controlarse el error `SERIALIZATION_FAILURE`.
 
+## Ejercicio 21
+#### Crea una opción para incrementar el precio de un artículo. Pide por teclado el código del artículo, muestra la información sobre él, pide el porcentaje de incremento de precio y realiza la modificación. El incremento debe hacerse directamente en la sentencia SQL. No calcules el nuevo precio en el código Python.
+```python
+def update_price(conn):
+	"""
+	Pide por teclado el código. Si el artículo existe, muestra sus detalles,
+	pide un porcentaje de incremento de precio y actualiza el artículo.
+	:param conn: la conexión abierta a la bd
+	:return: Nada
+	"""
+
+	# Este caso lo hacemos con SERIALIZABLE por motivos didácticos
+	conn.isolation_level = psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE
+	
+	codigo = show_row(conn, control_tx=False)
+	if codigo is None:
+		conn.rollback()
+		return
+		
+	sincremento = input('Incremento (%): ')
+	incremento = None if sincremento == "" else float(sincremento)
+	
+	sentencia = """
+		update artigo
+		set prezoart = prezoart + prezoart * %(inc)s / 100.0
+		where codart = %(codigo)s
+	"""
+	
+	with conn.cursor() as cursor:
+		try:
+			cursor.execute(sentencia, {'inc': incremento, 'codigo': codigo})
+			# Esta línea tiene un fin didáctico (no es funcional)
+			# Mientras está en pausa la transacción, podemos abrir otra terminal
+			# y forzar un SERIALIZATION_FAILURE
+			input("PULSA ENTER")
+			conn.commit()
+			print("Artículo actualizado")
+		except psycopg2.Error as e:
+			if e.pgcode == psycopg2.errorcodes.SERIALIZATION_FAILURE:
+				print("El precio del artículo fue modificado por otro usuario y no corresponde con el precio mostrado.")
+			elif e.pgcode == psycopg2.errorcodes.CHECK_VIOLATION:
+				print("El precio debe ser positivo.")
+			else:
+				print(f"Error: {e.pgcode}: {e.pgerror}")
+			conn.rollback()
+
+
+# ¡Añadir la nueva opción al menú!
+```
+
