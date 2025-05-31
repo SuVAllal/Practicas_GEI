@@ -68,3 +68,11 @@ SELECT * FROM artigo;
 
 **¿Qué está pasando?** Permite añadir el elemento 'Ordenador' aunque no digamos el precio ya que en la creación de la tabla la única restricción de `NOT NULL` es para la clave primaria `CODART`.
 
+#### 5. Crea una vista de nombre `VART4` que obtenga todos los datos de los artículos que tengan un precio superior a 4.
+```SQL
+CREATE VIEW vart4
+	AS SELECT *
+		FROM artigo
+		WHERE prezoart > 4;
+```
+
