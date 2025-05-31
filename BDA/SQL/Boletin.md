@@ -42,3 +42,29 @@ CREATE SEQUENCE <nome>
 ```SQL
 CREATE SEQUENCE seq_artigo;
 ```
+
+#### 4. Usa la secuencia para generar el código del artículo e inserta las filas para los siguientes productos, con sus precios:
+```
+Folios 3.75
+Calculadora 17.00
+Ordenador <desconocido>
+```
+#### Haz `commit` para confirmar la transacción, y comprueba los valores insertados.
+```SQL
+INSERT INTO artigo (codart, nomart, prezoart) VALUES (seq_artigo.nextval, 'Folios', 3.75);
+INSERT INTO artigo (codart, nomart, prezoart) VALUES (seq_artigo.nextval, 'Calculadora', 17.00);
+INSERT INTO artigo (codart, nomart, prezoart) VALUES (seq_artigo.nextval, 'Ordenador', null);
+
+COMMIT;
+
+SELECT * FROM artigo;
+
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+        21 Folios                     3,75
+        22 Calculadora                  17
+        23 Ordenador
+```
+
+**¿Qué está pasando?** Permite añadir el elemento 'Ordenador' aunque no digamos el precio ya que en la creación de la tabla la única restricción de `NOT NULL` es para la clave primaria `CODART`.
+
