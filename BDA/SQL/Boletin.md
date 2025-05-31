@@ -76,7 +76,7 @@ CREATE VIEW vart4
 		WHERE prezoart > 4;
 ```
 
-## Catálogo
+## 2. Catálogo
 #### 1. La vista que almacena información sobre el propio catálogo de Oracle es `DICTIONARY` o su sinónimo `DICT`. Examina su estructura y comprueba si aparecen `USER_TABLES, ALL_TABLES` y `DBA_TABLES`.
 ```SQL
 DESC dict;
@@ -196,4 +196,36 @@ WHERE table_name='ARTIGO';
 SELECT OBJECT_NAME as NOMBRE, OBJECT_TYPE as TIPO
 FROM obj;
 ```
+
+## 3. VISTAS
+#### 1. Inserta la fila `(6, 'Libro BD', 1)` a través de la vista `VART4`. ¿Qué ocurre? Anula la transacción.
+```SQL
+INSERT INTO vart4 VALUES(6, 'Libro BD', 1);
+-- Inserta la fila, generando una fila migratoria
+SELECT * FROM vart4;
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+        22 Calculadora                  17
+-- Aunque la hayamos insertado a través de la vista no aparece, ya que su precio es menor que 4.
+SELECT * FROM artigo;
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+        21 Folios                     3,75
+        22 Calculadora                  17
+        23 Ordenador
+         6 Libro BD                      1
+-- En cambio, al mirar la tabla completa, sí está insertada (fila migratoria).
+
+ROLLBACK;
+
+SELECT * FROM artigo;
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+        21 Folios                     3,75
+        22 Calculadora                  17
+        23 Ordenador
+-- Después de anular la transacción ya no aparece, pues no se han "guardado" los cambios.
+```
+
+
 
