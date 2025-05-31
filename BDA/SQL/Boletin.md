@@ -109,5 +109,65 @@ ninguna fila seleccionada
 ```
 
 **¿Qué está pasando?** El usuario actual tiene acceso a las vistas `USER_TABLES` y `ALL_TABLES`, por eso aparecen en `DICT`. Sin embargo, no tiene privilegios para acceder a `DBA_TABLES`, que solo está disponible para usuarios con permisos de administrador (por ejemplo, con rol `DBA`).
+
 Además, aunque tengamos creadas las tablas `artigo, venta` y la vista `vart4`, no aparecen ya que `DICT` no muestra las tablas y vistas del usuario, sino solo las vistas del diccionario del sistema (el catálogo). Las tablas `artigo, venta` y la vista `vart4` están creadas en el esquema del usuario, no en el diccionario del sistema/catálogo. Podríamos consultarlas usando: `USER_TABLES, USER_VIEWS` o `USER_OBJECTS`.
+
+#### 2. En Oracle podemos ver información sobre los objetos de nuestro usuario mediante diversas vistas. Comprueba las diferencias que hay entre `TAB, USER_TABLES/TABS, USER_CATALOG/CAT`. Haz uso de DESCRIBE y SELECT para comprobarlo.
+```SQL
+DESC tab;
+Nombre             ¿Nulo?  Tipo
+ ---------------- -------- -------------------------------
+ TNAME            NOT NULL VARCHAR2(128)
+ TABTYPE                   VARCHAR2(13)
+ CLUSTERID                 NUMBER
+
+DESC tabs;
+ Nombre            ¿Nulo?  Tipo
+ ---------------- -------- --------------------------------------------
+ TABLE_NAME       NOT NULL VARCHAR2(128)
+ TABLESPACE_NAME           VARCHAR2(30)
+ CLUSTER_NAME              VARCHAR2(128)
+ IOT_NAME                  VARCHAR2(128)
+ STATUS                    VARCHAR2(8)
+ PCT_FREE                  NUMBER
+ PCT_USED                  NUMBER
+-- ...
+
+DESC cat;
+Nombre             ¿Nulo?  Tipo
+ ------------ --- -------- --------------------------------------------
+ TABLE_NAME       NOT NULL VARCHAR2(128)
+ TABLE_TYPE                VARCHAR2(11)
+ 
+SELECT * FROM tab;
+-- Muestra el contenido de las columnas TNAME, TABTYPE y CLUSTERID
+
+SELECT * FROM tabs;
+-- Muestra múltiples columnas como: TABLE_NAME, TABLESPACE_NAME, STATUS, CACHE, BLOCKS... etc.
+
+SELECT * FROM cat;
+-- Muestra el contenido de las columnas TABLE_NAME y TABLE_TYPE
+TABLE_NAME                TABLE_TYPE
+------------------------- ----------------
+SEQ_ARTIGO                SEQUENCE
+VART4                     VIEW
+-- ...
+```
+
+**¿Qué diferencias hay entre `TAB, TABS/USER_TABLES, CAT`?** 
+- TAB:
+	- Es una vista que muestra todas las tablas y vistas del usuario.
+	- No muestra detalles técnicos como espacio en disco o estado.
+- TABS o USER_TABLES:
+	- Muestra **solo** las tablas del usuario.
+	- Contiene información más detallada.
+- CAT o USER_CATALOG:
+	- Vista que muestra tablas, vistas y **secuencias** del usuario.
+	- No muestra detalles técnicos.
+
+| Vista  | ¿Qué muestra?               | Objetos incluidos     | Nivel de detalle | Posibles usos                                                                                                                                   |
+| ------ | --------------------------- | --------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TAB`  | Tablas y vistas             | TABLE, VIEW           | Básico           | Visión rápida y simple de tablas y vistas.<br>Útil para saber qué objetos tenemos sin ver más detalles.                                         |
+| `TABS` | Solo tablas                 | TABLE                 | Detallado        | Detalle técnico para gestión, optimización y mantenimiento de tablas. <br>Importante para DBA o para hacer auditorías de espacio y rendimiento. |
+| `CAT`  | Tablas, vistas y secuencias | TABLE, VIEW, SEQUENCE | Básico           | Inventario general de tablas, vistas y secuencias del esquema.<br>Útil para ver rápidamente todos los tipos de objetos que tenemos.             |
 
