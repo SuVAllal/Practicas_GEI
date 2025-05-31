@@ -227,5 +227,19 @@ SELECT * FROM artigo;
 -- Después de anular la transacción ya no aparece, pues no se han "guardado" los cambios.
 ```
 
+#### 2. Cambia la vista `VART4` que muestra los artículos de más de 4 euros, de forma que la vista impida insertar filas de artículos que no cumplan con esa restricción (no queremos filas migratorias), y comprueba que efectivamente funciona tratando de insertar de nuevo la fila `(6, 'Libro BD', 1)`.
+Para modificar vistas en Oracle **NO** se usa `ALTER VIEW`, sino `CREATE OR REPLACE VIEW`.
 
+```SQL
+CREATE OR REPLACE VIEW vart4 
+AS SELECT *
+	FROM artigo
+	WHERE prezoart > 4
+	WITH CHECK OPTION;
+
+INSERT INTO vart4 VALUES(6, 'Libro BD', 1);
+            *
+ERROR en línea 1:
+ORA-01402: violación de la cláusula WHERE en la vista WITH CHECK OPTION
+```
 
