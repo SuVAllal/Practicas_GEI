@@ -31,3 +31,14 @@ CREATE TABLE venda (
 );
 ```
 
+#### 3. Oracle utiliza secuencias (`SEQUENCE`) para generar números de forma similar a los "auto increment" de otros gestores. Crea una secuencia de nombre `SEQ_ARTIGO`. La sintaxis básica para la creación es:
+```SQL
+CREATE SEQUENCE <nome>
+	[MINVALUE <valor-min>] [MAXVALUE <valor-max>]
+	[START WITH <valor-inicial>] [INCREMENT BY <incremento>]
+```
+#### Puedes dejar todos los parámetros en su valor predeterminado.
+#### Para usar la secuencia, usaremos `SEQ_ARTIGO.NEXTVAL` para obtener un nuevo número, y `SEQ_ARTIGO.CURRVAL` para recuperar el último generado (en una sesión es obligatorio usar por lo menos una vez `NEXTVAL` antes de usar `CURRVAL`).
+```SQL
+CREATE SEQUENCE seq_artigo;
+```
