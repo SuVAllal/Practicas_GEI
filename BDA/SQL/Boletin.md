@@ -76,3 +76,38 @@ CREATE VIEW vart4
 		WHERE prezoart > 4;
 ```
 
+## Catálogo
+#### 1. La vista que almacena información sobre el propio catálogo de Oracle es `DICTIONARY` o su sinónimo `DICT`. Examina su estructura y comprueba si aparecen `USER_TABLES, ALL_TABLES` y `DBA_TABLES`.
+```SQL
+DESC dict;
+-- También es válido:
+DESCRIBE dict;
+
+-- Muestra lo siguiente:
+        Nombre             ¿Nulo?        Tipo
+------------------------- -------- -----------------
+ TABLE_NAME                          VARCHAR2(128)
+ COMMENTS                            VARCHAR2(4000)
+
+-- El contenido del diccionario de datos siempre está en mayúsculas
+SELECT * FROM dict WHERE table_name='USER_TABLES';
+TABLE_NAME
+-------------------------------------------------
+COMMENTS
+-------------------------------------------------
+USER_TABLES
+
+SELECT * FROM dict WHERE table_name='ALL_TABLES';
+TABLE_NAME
+-------------------------------------------------
+COMMENTS
+-------------------------------------------------
+ALL_TABLES
+
+SELECT * FROM dict WHERE table_name='DBA_TABLES';
+ninguna fila seleccionada
+```
+
+**¿Qué está pasando?** El usuario actual tiene acceso a las vistas `USER_TABLES` y `ALL_TABLES`, por eso aparecen en `DICT`. Sin embargo, no tiene privilegios para acceder a `DBA_TABLES`, que solo está disponible para usuarios con permisos de administrador (por ejemplo, con rol `DBA`).
+Además, aunque tengamos creadas las tablas `artigo, venta` y la vista `vart4`, no aparecen ya que `DICT` no muestra las tablas y vistas del usuario, sino solo las vistas del diccionario del sistema (el catálogo). Las tablas `artigo, venta` y la vista `vart4` están creadas en el esquema del usuario, no en el diccionario del sistema/catálogo. Podríamos consultarlas usando: `USER_TABLES, USER_VIEWS` o `USER_OBJECTS`.
+
