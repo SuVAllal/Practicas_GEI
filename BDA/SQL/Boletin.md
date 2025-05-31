@@ -190,3 +190,10 @@ SELECT column_name as NOMBRE, DATA_TYPE as TIPO, NULLABLE as "NULOS?"
 FROM cols
 WHERE table_name='ARTIGO';
 ```
+
+#### 4. La vista `USER_OBJECTS` y su sinónimo `OBJ` almacenan información sobre los objetos del usuario. Examina la estructura de esa vista y obtén el nombre y tipo de tus objetos.
+```SQL
+SELECT OBJECT_NAME as NOMBRE, OBJECT_TYPE as TIPO
+FROM obj;
+```
+
