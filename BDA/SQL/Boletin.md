@@ -171,3 +171,22 @@ VART4                     VIEW
 | `TABS` | Solo tablas                 | TABLE                 | Detallado        | Detalle técnico para gestión, optimización y mantenimiento de tablas. <br>Importante para DBA o para hacer auditorías de espacio y rendimiento. |
 | `CAT`  | Tablas, vistas y secuencias | TABLE, VIEW, SEQUENCE | Básico           | Inventario general de tablas, vistas y secuencias del esquema.<br>Útil para ver rápidamente todos los tipos de objetos que tenemos.             |
 
+#### 3. La vista `USER_TAB_COLUMNS` y su sinónimo `COLS` contienen información sobre las columnas. Obtén mediante ellas información sobre las columnas de la tabla artigo. El resultado debe ser similar a este:
+```
+NOMBRE   TIPO      NULOS?
+-------  -----     ----------- 
+CODART   NUMBER    N 
+NOMART   VARCHAR2  Y 
+PREZOART NUMBER    Y
+```
+
+```SQL
+-- Para tener el mismo formato que el resultado dado:
+column NOMBRE format a30
+column TIPO format a20
+column "NULOS?" format a10
+
+SELECT column_name as NOMBRE, DATA_TYPE as TIPO, NULLABLE as "NULOS?"
+FROM cols
+WHERE table_name='ARTIGO';
+```
