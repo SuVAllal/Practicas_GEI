@@ -25,9 +25,9 @@ CREATE TABLE venda (
 	codart NUMBER(3) NOT NULL,
 	prezoven NUMBER(5,2) NOT NULL,
 	cantven NUMBER(3) NOT NULL,
-	data DATE NOT NULL,
+	data DATE DEFAULT SYSDATE NOT NULL,
 	CONSTRAINT pk_venda PRIMARY KEY (idven),
-	CONSTRAINT fk_venda_codart FOREIGN KEY (codart) REFERENCES artigo(codart)
+	CONSTRAINT fk_venda_codart FOREIGN KEY (codart) REFERENCES artigo(codart) ON DELETE CASCADE
 );
 ```
 
