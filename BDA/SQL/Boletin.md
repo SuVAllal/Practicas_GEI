@@ -256,3 +256,25 @@ ADD CONSTRAINT ch_art_prezo_pos CHECK (prezoart > 0)
 DEFERRABLE INITIALLY DEFERRED; -- la hacemos aplazable e inicialmente aplazada
 ```
 
+#### 2. Confirma, buscando en el catálogo, que la restricción está correctamente creada.
+```SQL
+-- Así vemos todas las restricciones de la tabla 'ARTIGO'
+SELECT constraint_name, contraint_type, deferrable, deferred
+FROM user_constraints
+WHERE table_name='ARTIGO';
+
+CONSTRAINT_NAME          C DEFERRABLE     DEFERRED
+----------------------   - -------------- ---------
+CH_ART_PREZO_POS         C DEFERRABLE     DEFERRED   -- C de CHECK
+PK_ARTIGO                P NOT DEFERRABLE IMMEDIATE  -- P de PRIMARY
+
+-- O también para ver concretamente esa restricción:
+SELECT constraint_name, contraint_type, deferrable, deferred
+FROM user_constraints
+WHERE contraint_name='CH_ART_PREZO_POS';
+
+CONSTRAINT_NAME          C DEFERRABLE     DEFERRED
+----------------------   - -------------- ---------
+CH_ART_PREZO_POS         C DEFERRABLE     DEFERRED
+```
+
