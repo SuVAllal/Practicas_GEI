@@ -243,3 +243,16 @@ ERROR en línea 1:
 ORA-01402: violación de la cláusula WHERE en la vista WITH CHECK OPTION
 ```
 
+## 4. Restricciones
+#### 1. Asegúrate de que las tablas `artigo` y `venda` no contienen ninguna fila. Añade una restricción, de nombre `ch_art_prezo_pos` que garantice que el precio de los artículos es positivo. La restricción debe ser aplazable e inicialmente aplazada.
+
+```SQL
+-- Vaciamos el contenido de artigo (venda ya está vacía)
+DELETE FROM artigo;
+
+-- Añadimos la restricción
+ALTER TABLE artigo
+ADD CONSTRAINT ch_art_prezo_pos CHECK (prezoart > 0)
+DEFERRABLE INITIALLY DEFERRED; -- la hacemos aplazable e inicialmente aplazada
+```
+
