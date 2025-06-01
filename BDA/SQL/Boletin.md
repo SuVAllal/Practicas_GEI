@@ -303,3 +303,15 @@ COMMIT;
 - El SGBD comprueba si hay modificaciones pendientes (`INSERT, UPDATE` o `DELETE`) en la sesión actual.
 - Para cada fila modificada, comprueba que se cumplen **todas** las restricciones, incluidas las `DEFERRED` como `prezoart > 0`.
 - Como todas las restricciones se cumplen, los cambios son confirmados permanentemente: la transacción actual termina, los datos dejan de estar en estado "temporal" y el resto de usuarios ya pueden ver los cambios.
+
+#### 5. Añade la fila `(2, Pluma, 0)`.
+```SQL
+INSERT INTO artigo(codart, nomart, prezoart) VALUES (2, 'Pluma', 0);
+```
+
+- El SGBD comprueba que la tabla Artigo existe y que el usuario tiene permiso de inserción.
+- Comprueba que los nombres de las columnas son correctos.
+- Comprueba que se cumplen las restricciones **inmediatas**.
+- La restricción `prezoart > 0` no se comprueba de momento, porque está `DEFERRED`.
+- La fila se inserta temporalmente.
+
