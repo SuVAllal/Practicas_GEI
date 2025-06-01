@@ -278,3 +278,19 @@ CONSTRAINT_NAME          C DEFERRABLE     DEFERRED
 CH_ART_PREZO_POS         C DEFERRABLE     DEFERRED
 ```
 
+#### 3. Para los siguientes ejercicios, intenta explicar qué es lo que sucede y por qué. Añade la fila `(1, Folios, 3.75)` a la tabla artigo.
+>**NOTA:** Para que todos tengamos los mismos valores, no vamos a usar la secuencia creada en los siguientes ejercicios.
+
+```SQL
+INSERT INTO artigo (codart, nomart, prezoart) VALUES (1, 'Folios', 3.75);
+```
+
+**¿Qué ocurre cuando se ejecuta la sentencia?**
+- El SGBD comprueba que Artigo existe y que es una tabla válida del usuario.
+- Comprueba que el usuario tiene permisos de `INSERT` sobre Artigo.
+- Comprueba que los nombres de las columnas `(codart, nomart, prezoart)` existen en la tabla.
+- Comprueba que los valores tienen tipos compatibles: `1` número, `'Folios'` cadena, `3.75` número con decimales.
+- Comprueba que se cumplen las restricciones **inmediatas**: `NOT NULL` en la clave primaria.
+- Como la restricción sobre el precio está desplazada no se comprueba en ese momento, sino al hacer `COMMIT`.
+- La fila se inserta temporalmente aunque la restricción `DEFERRED` se cumpla o no.
+
