@@ -294,3 +294,12 @@ INSERT INTO artigo (codart, nomart, prezoart) VALUES (1, 'Folios', 3.75);
 - Como la restricción sobre el precio está desplazada no se comprueba en ese momento, sino al hacer `COMMIT`.
 - La fila se inserta temporalmente aunque la restricción `DEFERRED` se cumpla o no.
 
+#### 4. Confirma los cambios de la transacción actual.
+```SQL
+COMMIT;
+```
+
+**¿Qué está pasando en la base de datos?**
+- El SGBD comprueba si hay modificaciones pendientes (`INSERT, UPDATE` o `DELETE`) en la sesión actual.
+- Para cada fila modificada, comprueba que se cumplen **todas** las restricciones, incluidas las `DEFERRED` como `prezoart > 0`.
+- Como todas las restricciones se cumplen, los cambios son confirmados permanentemente: la transacción actual termina, los datos dejan de estar en estado "temporal" y el resto de usuarios ya pueden ver los cambios.
