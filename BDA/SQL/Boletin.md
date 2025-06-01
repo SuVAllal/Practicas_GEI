@@ -259,7 +259,7 @@ DEFERRABLE INITIALLY DEFERRED; -- la hacemos aplazable e inicialmente aplazada
 #### 2. Confirma, buscando en el catálogo, que la restricción está correctamente creada.
 ```SQL
 -- Así vemos todas las restricciones de la tabla 'ARTIGO'
-SELECT constraint_name, contraint_type, deferrable, deferred
+SELECT constraint_name, constraint_type, deferrable, deferred
 FROM user_constraints
 WHERE table_name='ARTIGO';
 
@@ -269,9 +269,9 @@ CH_ART_PREZO_POS         C DEFERRABLE     DEFERRED   -- C de CHECK
 PK_ARTIGO                P NOT DEFERRABLE IMMEDIATE  -- P de PRIMARY
 
 -- O también para ver concretamente esa restricción:
-SELECT constraint_name, contraint_type, deferrable, deferred
+SELECT constraint_name, constraint_type, deferrable, deferred
 FROM user_constraints
-WHERE contraint_name='CH_ART_PREZO_POS';
+WHERE constraint_name='CH_ART_PREZO_POS';
 
 CONSTRAINT_NAME          C DEFERRABLE     DEFERRED
 ----------------------   - -------------- ---------
@@ -283,6 +283,7 @@ CH_ART_PREZO_POS         C DEFERRABLE     DEFERRED
 
 ```SQL
 INSERT INTO artigo (codart, nomart, prezoart) VALUES (1, 'Folios', 3.75);
+1 fila creada.
 ```
 
 **¿Qué ocurre cuando se ejecuta la sentencia?**
@@ -297,6 +298,7 @@ INSERT INTO artigo (codart, nomart, prezoart) VALUES (1, 'Folios', 3.75);
 #### 4. Confirma los cambios de la transacción actual.
 ```SQL
 COMMIT;
+Confirmación terminada.
 ```
 
 **¿Qué está pasando en la base de datos?**
@@ -307,6 +309,14 @@ COMMIT;
 #### 5. Añade la fila `(2, Pluma, 0)`.
 ```SQL
 INSERT INTO artigo(codart, nomart, prezoart) VALUES (2, 'Pluma', 0);
+1 fila creada
+
+-- Podemos comprobar que está insertada TEMPORALMENTE
+SELECT * FROM artigo;
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+         1 Folios                     3,75
+         2 Pluma                         0
 ```
 
 - El SGBD comprueba que la tabla Artigo existe y que el usuario tiene permiso de inserción.
@@ -314,4 +324,202 @@ INSERT INTO artigo(codart, nomart, prezoart) VALUES (2, 'Pluma', 0);
 - Comprueba que se cumplen las restricciones **inmediatas**.
 - La restricción `prezoart > 0` no se comprueba de momento, porque está `DEFERRED`.
 - La fila se inserta temporalmente.
+
+#### 6. Confirma los cambios de la transacción actual.
+```SQL
+COMMIT;
+*
+ERROR en línea 1:
+ORA-02091: transacción con rollback
+ORA-02290: restricción de control (SCOTT.CH_ART_PREZO_POS) violada
+
+-- Podemos comprobar que efectivamente, NO se insertó
+SELECT * FROM artigo;
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+         1 Folios                     3,75
+```
+
+- El SGBD detecta que hay modificaciones pendientes en la transacción.
+- Antes de confirmar los cambios comprueba **todas** las restricciones, incluidas las `DEFERRED`.
+- Comprueba la restricción `CHECK (prezoart > 0)`: **No se cumple**, lo que provoca una violación de la restricción. Oracle lanza un error (`ORA-02290`) y se cancelan **todos** los cambios de la transacción con un `ROLLBACK`.
+
+#### 7. Inserta las filas siguientes: `(2, Pluma, 80)` y `(3, Libreta, 0)`. Examina las filas que hay en `artigo`.
+```SQL
+INSERT INTO artigo(codart, nomart, prezoart) VALUES (2, 'Pluma', 80);
+INSERT INTO artigo(codart, nomart, prezoart) VALUES (3, 'Libreta', 0);
+
+SELECT * FROM artigo;
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+         1 Folios                     3,75
+         2 Pluma                        80
+         3 Libreta                       0
+```
+
+Se sigue el mismo proceso que en los ejercicios anteriores, y se insertan temporalmente ya que ambas cumplen las restricciones inmediatas de la tabla.
+
+#### 8. Actualiza el precio de la libreta a 3,20. Confirma los cambios.
+```SQL
+UPDATE artigo
+SET prezoart = 3.20
+WHERE nomart = 'Libreta';
+1 fila actualizada.
+
+COMMIT;
+Confirmación terminada.
+
+SELECT * FROM artigo;
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+         1 Folios                     3,75
+         2 Pluma                        80
+         3 Libreta                     3,2
+```
+
+- El SGBD busca la fila en Artigo donde `nomart = 'Libreta'`.
+- La encuentra y actualiza el valor `prezoart` a `3.20`.
+- Como la restricción `prezoart > 0` es `DEFERRED` **no se hace ninguna comprobación en ese momento**, igual que cuando la insertamos.
+- Al hacer el `COMMIT` el SGBD comprueba que se cumplen todas las restricciones, inmediatas y desplazadas.
+- Como todas las filas cumplen con la restricción de `prezoart` no hay errores, se realiza el `COMMIT` y se confirman los cambios convirtiéndose en permanentes y terminando la transacción.
+> Es importante destacar que el `UPDATE` corrigió la violación de la restricción de `prezoart`.
+
+#### 9. Crea una tabla `proba` con un campo `id` de tipo `int`, clave primaria.
+```SQL
+CREATE TABLE proba (
+	id NUMBER(3),
+	CONSTRAINT pk_proba PRIMARY KEY (id)
+);
+```
+
+#### 10. Inserta en `artigo` la fila `(4, Boli, 0.9)`. Inserta en la tabla `proba` la fila `(1)`. Inserta en `artigo` la fila `(5, Calculadora, -3)`. Confirma los datos. ¿Qué ocurre? ¿Hay datos en `prueba`?
+```SQL
+INSERT INTO artigo (codart, nomart, prezoart) VALUES (4, 'Boli', 0.9);
+INSERT INTO proba (id) VALUES (1);
+INSERT INTO artigo (codart, nomart, prezoart) VALUES (5, 'Calculadora', -3);
+
+SELECT * FROM proba;
+        ID
+----------
+         1
+
+SELECT * FROM artigo;
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+         1 Folios                     3,75
+         2 Pluma                        80
+         3 Libreta                     3,2
+         4 Boli                         ,9
+         5 Calculadora                  -3
+
+COMMIT;
+*
+ERROR en línea 1:
+ORA-02091: transacción con rollback
+ORA-02290: restricción de control (SCOTT.CH_ART_PREZO_POS) violada
+```
+
+- El SGBD ejecuta los `INSERT` correctamente. (La fila con 'Boli' y la de `prueba` son válidas, pero la de 'Calculadora' no, pero al ser una restricción desplazada se acepta temporalmente).
+- Al ejecutar el `COMMIT`, Oracle:
+	- Revisa todas las restricciones, inmediatas y desplazadas.
+	- Encuentra la violación de la restricción en la fila de 'Calculadora', lanza un error y provoca un `ROLLBACK` de la **transacción completa**, deshaciendo **todos los cambios** hechos en esa transacción (es decir, los tres `INSERT` aunque los otros dos fueran correctos, ninguno de ellos se hace permanente).
+
+```SQL
+SELECT * FROM proba;
+-- desapareció la fila insertada a pesar de ser correcta
+ninguna fila seleccionada.
+
+SELECT * FROM artigo;
+-- lo mismo aquí, desapareció la correcta y la incorrecta
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+         1 Folios                     3,75
+         2 Pluma                        80
+         3 Libreta                     3,2
+```
+
+#### 12. Intenta insertar la calculadora de nuevo, con el mismo precio.
+```SQL
+INSERT INTO artigo (codart, nomart, prezoart) VALUES (5, 'Calculadora', -3);
+1 fila creada.
+```
+
+Se inserta temporalmente la fila.
+
+#### 13. Pon la restricción `ch_art_prezo_pos` en modo inmediato.
+```SQL
+SET CONSTRAINT ch_art_prezo_pos IMMEDIATE; -- Afecta solo a la transacción actual, cuando termine la transacción volverá a ser DEFERRED
+*
+ERROR en línea 1:
+ORA-02290: restricción de control (SCOTT.CH_ART_PREZO_POS) violada
+
+SELECT * FROM artigo;
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+         1 Folios                     3,75
+         2 Pluma                        80
+         3 Libreta                     3,2
+         5 Calculadora                  -3
+```
+
+- Al cambiar el modo de la restricción, Oracle obliga a comprobar **en ese momento** todas las filas afectadas por esa restricción en la transacción actual.
+- Encuentra que la fila de 'Calculadora' no cumple la restricción.
+- Oracle lanza un error indicando que se violó la restricción, **pero no hace `ROLLBACK`, la transacción sigue abierta** y los datos incorrectos siguen presentes, pero no se confirmarán a menos que corrijamos el error.
+
+>**NOTA:** Si repetimos el ejercicio anterior poniendo la restricción en modo inmediato, las filas correctas de 'Boli' y `proba` sí se insertarían, pero la incorrecta de 'Calculadora' no, es decir, desaparecerían solo las filas incorrectas.
+
+#### 14. Modifica el precio de la calculadora, poniendo 10. Vuelve a intentar poner la restricción en modo inmediato. Confirma los cambios.
+```SQL
+UPDATE artigo
+SET prezoart = 10
+WHERE nomart = 'Calculadora';
+1 fila actualizada.
+
+SET CONSTRAINT ch_art_prezo_pos IMMEDIATE;
+Restricción definida.
+-- Fijarse que ahora no salta ningún error o violación de la restricción debido a que corregimos el error
+
+COMMIT;
+Confirmación terminada.
+```
+
+> En el momento del `COMMIT` Oracle comprueba las restricciones pendientes (es decir, las desplazadas, pues las inmediatas se comprueba en el momento en el que se ejecuta la sentencia a ejecutar), es decir, cuando se cambió la restricción a `IMMEDIATE` Oracle hizo las comprobaciones, entonces en el momento del `COMMIT` no vuelve a repetir esas comprobaciones a menos que detecte cambios sin comprobar (restricciones desplazadas).
+
+Al terminar la transacción con el `COMMIT` la restricción vuelve automáticamente a su modo por defecto: `DEFERRED`.
+
+#### 15. El estándar SQL permite especificar, para las claves foráneas (solo tiene sentido para las compuestas de varios atributos), la cláusula `MATCH` con las opciones `SIMPLE, PARTIAL` y `FULL`. Oracle no permite esta especificación, pero su comportamiento corresponde a una de esas 3 opciones. Averigua, creando tablas e insertando datos, a qué opción corresponde.
+Recordemos cómo funciona cada opción del `MATCH`:
+- `MATCH SIMPLE`: si existe un nulo, acepta la clave aunque algún otro valor no sea correcto. Si todos los valores son correctos, la acepta.
+- `MATCH PARTIAL`: si existe un nulo, pero alguno de los valores de la clave foránea no es correcto, no lo acepta. Si todos los valores son correctos, la acepta.
+- `MATCH FULL`: solo acepta si todos los valores son correctos o si todos son nulos.
+Es decir, para saber qué opción de `MATCH` usa Oracle, podemos probar las siguientes combinaciones:
+- Valor correcto, valor correcto (así puede ser cualquiera de los tres).
+- NULL, NULL (así puede ser cualquiera de los tres).
+- Valor incorrecto, valor incorrecto (así puede ser cualquiera de los tres).
+- Valor correcto, NULL (así solo puede ser `SIMPLE` o `PARTIAL`).
+- Valor incorrecto, NULL (así solo puede ser `SIMPLE`, si no la acepta es `PARTIAL` o `FULL`).
+
+```SQL
+CREATE TABLE maestra (
+	a number(3),
+	b number(3),
+	CONSTRAINT pk_maestra PRIMARY KEY (a,b)
+);
+
+CREATE TABLE esclava (
+	c number(3),
+	a number(3),
+	b number(3),
+	CONSTRAINT fk_maestra FOREIGN KEY (a,b) REFERENCES maestra(a,b)
+);
+
+INSERT INTO maestra VALUES (1, 2);
+INSERT INTO esclava VALUES (101, 1, 2); -- Funciona, puede ser cualquiera de los tres
+INSERT INTO esclava VALUES (101, NULL, 2); -- Funciona, NO es FULL
+INSERT INTO esclava VALUES (101, NULL, NULL); -- Funciona, puede ser cualquiera de los tres
+INSERT INTO esclava VALUES (101, 3, 4); -- No funciona, violación de clave foránea
+INSERT INTO esclava VALUES (101, 5, NULL); -- Funciona, Oracle usa MATCH SIMPLE
+```
+
+> **NOTA:** Oracle usa como predeterminado `MATCH SIMPLE`, pero también tiene implementado el `MATCH FULL`.
 
