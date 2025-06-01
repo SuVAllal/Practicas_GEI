@@ -524,3 +524,45 @@ INSERT INTO esclava VALUES (101, 5, NULL); -- Funciona, Oracle usa MATCH SIMPLE
 
 > **NOTA:** Oracle usa como predeterminado `MATCH SIMPLE`, pero también tiene implementado el `MATCH FULL`.
 
+## 5. Papelera
+#### 1. Elimina por completo la tabla `proba` (tanto el contenido como la definición). Examina las tablas usando `TAB`.
+```SQL
+DROP TABLE proba;
+Tabla borrada.
+
+SELECT * FROM TAB WHERE TNAME = 'PROBA';
+ninguna fila seleccionada -- No aparece en las tablas del usuario, se ha eliminado
+```
+
+#### 2. Mira si hay algo en la papelera de reciclaje. Restaura la tabla `proba` y examina de nuevo `TAB`.
+```SQL
+SELECT * FROM recyclebin WHERE original_name = 'PROBA';
+
+FLASHBACK TABLE proba TO BEFORE DROP;
+Flashback terminado.
+
+SELECT * FROM TAB WHERE TNAME = 'PROBA';
+-- Ahora sí aparece, ya no está eliminada
+TNAME        TABTYPE        CLUSTERID
+------------ ------------- ----------
+PROBA        TABLE
+```
+
+#### 3. Elimina por completo la tabla `proba` (contenido y definición) de forma que desaparezca (que no quede en la papelera). Puedes hacerlo de dos formas distintas.
+```SQL
+-- Primera forma:
+DROP TABLE proba PURGE; -- No se puede recuperar con FLASHBACK TABLE
+
+-- Segunda forma:
+ALTER SESSION SET recyclebin = OFF; -- Desactiva temporalmente la papelera, por lo que al borrar la tabla esta no irá allí
+DROP TABLE proba;
+```
+
+#### 4. Vacía la papelera de reciclaje (aunque ya esté vacía).
+```SQL
+PURGE recyclebin;
+
+SELECT * FROM recyclebin;
+ninguna fila seleccionada.
+```
+
