@@ -492,6 +492,7 @@ Recordemos cómo funciona cada opción del `MATCH`:
 - `MATCH SIMPLE`: si existe un nulo, acepta la clave aunque algún otro valor no sea correcto. Si todos los valores son correctos, la acepta.
 - `MATCH PARTIAL`: si existe un nulo, pero alguno de los valores de la clave foránea no es correcto, no lo acepta. Si todos los valores son correctos, la acepta.
 - `MATCH FULL`: solo acepta si todos los valores son correctos o si todos son nulos.
+
 Es decir, para saber qué opción de `MATCH` usa Oracle, podemos probar las siguientes combinaciones:
 - Valor correcto, valor correcto (así puede ser cualquiera de los tres).
 - NULL, NULL (así puede ser cualquiera de los tres).
