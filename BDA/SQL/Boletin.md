@@ -566,3 +566,70 @@ SELECT * FROM recyclebin;
 ninguna fila seleccionada.
 ```
 
+## 6. Actividad
+#### 1. Oracle 19c implementa la cláusula `generated [always] as identity`, que internamente usa una secuencia y un trigger para generar valores para una columna. Vamos a hacerlo manualmente: utiliza la secuencia `seq_artigo` y trata de crear un trigger para simular ese comportamiento. Comprueba que funciona.
+```SQL
+CREATE OR REPLACE TRIGGER t_artigo_codart
+	BEFORE INSERT ON artigo
+	FOR EACH ROW
+	BEGIN
+		:new.codart := seq_artigo.nextval;
+	END;
+/
+
+Disparador creado
+
+INSERT INTO artigo(nomart, prezoart) VALUES ('Cuaderno', 1.25);
+*
+ERROR en línea 1:
+ORA-00001: restricción única (SCOTT.SYS_C00185534) violada
+
+SELECT seq_artigo.currval from dual;
+   CURRVAL
+----------
+         2
+         
+
+-- ...
+
+SELECT seq_artigo.currval from dual;
+   CURRVAL
+----------
+         3
+
+INSERT INTO artigo(nomart, prezoart) VALUES ('Cuaderno', 1.25);
+1 fila creada -- ahora sí funciona
+
+-- ¡CUIDADO! Como la secuencia empieza en 1 y tenemos ya los valores '1', '2' y '3' insertados en la tabla, dará error las primeras veces (hasta que el seq_artigo.currval = 4).
+```
+
+**¿Qué hace el trigger?**
+- Se activa antes de cada `INSERT` sobre `artigo`.
+- Asigna automáticamente un valor a `codart` usando la secuencia `seq_artigo`.
+
+**⚠️ Cosas a tener en cuenta:**
+- Debe ser un trigger `BEFORE UPDATE` para interceptar el cambio antes de que falle por la restricción.
+#### 2. Oracle no implementa la acción referencial `ON UPDATE CASCADE`, pero podemos simular esa acción utilizando un trigger. Crea un trigger para que la clave foránea de `venda` que referencia a `artigo` implemente la acción referencial de actualización en cascada.
+```SQL
+CREATE OR REPLACE TRIGGER t_venda_on_update
+	BEFORE UPDATE ON artigo
+	FOR EACH ROW
+	BEGIN
+		UPDATE venda
+		SET codart = :new.codart
+		WHERE codart = :old.codart;
+	END;
+/	
+```
+
+**¿Qué hace el trigger?**
+- Se actualiza **antes** de actualizar `artigo`.
+- Cuando se cambia `codart` en `artigo`, busca en `venda` todas las filas con ese valor antiguo y las actualiza al nuevo.
+
+**⚠️ Cosas a tener en cuenta:**
+- Debe ser un trigger `BEFORE UPDATE` para interceptar el cambio antes de que falle por la restricción.
+- Esto funcionará siempre que:
+	- No haya restricciones que impidan temporalmente los cambios en `venda` (como claves ajenas en otras tablas).
+	- `codart` no sea la clave primaria en `venda` (o si lo es, que la actualización no cause duplicados).
+
+
