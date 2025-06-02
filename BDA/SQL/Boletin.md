@@ -632,4 +632,49 @@ CREATE OR REPLACE TRIGGER t_venda_on_update
 	- No haya restricciones que impidan temporalmente los cambios en `venda` (como claves ajenas en otras tablas).
 	- `codart` no sea la clave primaria en `venda` (o si lo es, que la actualización no cause duplicados).
 
+## 7. Seguridad
+#### 1. En la base de datos de docencia están creados los usuarios `u1` y `u2`, ambos con `clave` como contraseña. Tu usuario tiene creada la tabla `artigo`. Da permisos al usuario `u1` para seleccionar de la tabla, con la potestad de pasárselo a otros.
+```SQL
+GRANT SELECT ON artigo TO u1 WITH GRANT OPTION;
+Concesión terminada correctamente.
+```
 
+#### 2. Comprueba que `u1` puede acceder a la tabla. Haz que `u1` otorgue el permiso de selección sobre la tabla `artigo` a `u2`. Comprueba que `u2` puede acceder.
+```bash
+# Para acceder al usuario 1, desde terminal:
+rlwrap sqlplus u1/clave@BDDOCENCIA
+```
+```SQL
+GRANT SELECT ON scott.artigo TO u2;
+Concesión terminada correctamente.
+
+-- Ahora, desde 'u2':
+SELECT * FROM scott.artigo;
+    CODART NOMART                 PREZOART
+---------- -------------------- ----------
+         2 Pluma                        80
+         3 Libreta                     3,2
+         1 Folios                     3,75
+         4 Cuaderno                   1,25
+```
+
+#### 3. Haz que tu usuario revoque el privilegio a `u2`. ¿Qué ocurre?
+```SQL
+REVOKE SELECT ON artigo FROM u2;
+*
+ERROR en línea 1:
+ORA-01927: no se puede revocar (REVOKE) privilegios que no se han otorgado
+```
+
+Este error ocurre porque se intenta revocar un privilegio que no fue otorgado directamente por el usuario. En Oracle, solo quien otorga el privilegio puede revocarlo, a menos que se revoque en cascada quitando el privilegio al intermediario (`u1`), lo que anula todos los permisos derivados de él (`u2`).
+
+#### 4. Haz que tu usuario revoque el privilegio a `u1`. ¿Qué ocurre?
+```SQL
+REVOKE SELECT ON artigo FROM u1;
+Revocación terminada correctamente.
+```
+
+Al ejecutar la sentencia, se revocó el privilegio de selección concedido a `u1`. Esta revocación provoca una **revocación en cascada**: Oracle también recova automáticamente el permiso de `SELECT` que `u1` había concedido a `u2`.
+Como resultado, ni `u1` ni `u2` pueden seguir consultando la tabla `artigo`.
+
+## 8. Optimización
