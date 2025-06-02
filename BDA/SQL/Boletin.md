@@ -71,7 +71,7 @@ SELECT * FROM artigo;
 #### 5. Crea una vista de nombre `VART4` que obtenga todos los datos de los artículos que tengan un precio superior a 4.
 ```SQL
 CREATE VIEW vart4
-	AS SELECT *
+	AS SELECT codart, nomart, prezoart
 		FROM artigo
 		WHERE prezoart > 4;
 ```
