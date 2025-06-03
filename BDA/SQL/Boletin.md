@@ -678,3 +678,59 @@ Al ejecutar la sentencia, se revocó el privilegio de selección concedido a `u1
 Como resultado, ni `u1` ni `u2` pueden seguir consultando la tabla `artigo`.
 
 ## 8. Optimización
+#### 2. Obtén el plan de ejecución para la consulta que muestra todos los datos de todos los empleados. Utiliza tanto `explain plan` como `set autotrace`. Revisa las diferencias entre ambas aproximaciones.
+```SQL
+-- Usando explain plan:
+EXPLAIN PLAN FOR
+	SELECT * FROM emp; -- la consulta no se ejecuta, solo se genera el plan de ejecución
+
+-- Podemos consultar el plan así:
+SELECT * 
+FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+PLAN_TABLE_OUTPUT
+-------------------------------------------
+Plan hash value: 3956160932
+
+--------------------------------------------------------------------------
+| Id  | Operation         | Name | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |      |    14 |   532 |     3   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS FULL| EMP  |    14 |   532 |     3   (0)| 00:00:01 |
+--------------------------------------------------------------------------
+
+8 filas seleccionadas.
+```
+
+Al ejecutar `EXPLAIN PLAN FOR SELECT * FROM emp;`, la consulta no se ejecuta realmente, sino que Oracle genera y guarda un plan de ejecución estimado en la tabla especial `PLAN_TABLE`. Este plan indica cómo Oracle **planea** acceder a los datos si se llegara a ejecutar la consulta.
+
+🔍 **¿Qué vemos en el plan de ejecución?**
+- Id 0: representa la consulta en sí (`SELECT` en este caso).
+- Id 1: es el paso donde Oracle accede directamente a la tabla `emp`.
+- La operación `TABLE ACCESS FULL` indica que Oracle **lee toda la tabla `EMP` sin usar índices**.
+- `Rows = 14` es una estimación del número de filas.
+- `Cost = 3` es un valor interno que Oracle usa para comparar la eficiencia (menor es mejor).
+- El `%CPU` y el `Time` son también estimaciones para comparar planes.
+
+```SQL
+-- Usando set autotrace:
+SET AUTOTRACE TRACEONLY EXPLAIN; -- Muestra solo el plan, sin resultados ni estadísitcas
+
+SELECT * FROM emp;
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 3956160932
+
+--------------------------------------------------------------------------
+| Id  | Operation         | Name | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |      |    14 |   532 |     3   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS FULL| EMP  |    14 |   532 |     3   (0)| 00:00:01 |
+--------------------------------------------------------------------------
+```
+
+Al ejecutar `SET AUTOTRACE TRACEONLY EXPLAIN`, se le indica a Oracle que, al lanzar una consulta, no muestre resultados ni estadísticas reales de ejecución, sino solo el plan de ejecución. A diferencia de con `EXPLAIN PLAN`, no se requiere consultar `DBMS_XPLAN`, ya que muestra el plan directamente.
+
+> **NOTA:** cada consulta que se lance será ejecutada (esto es especialmente importante si la consulta modifica datos).
+
+
