@@ -762,3 +762,44 @@ Predicate Information (identified by operation id):
 - Se estima `Rows = 1` ya que `empno` es una clave única (no hay múltiples filas con su valor, solo una).
 - El plan tiene un coste muy bajo (`Cost = 1`), ya que el acceso es directo y muy eficiente al usar índices.
 
+#### 4. Haz lo mismo, pero fuerza a que se utilice una exploración completa de la tabla `emp`. Revisa las diferencias con el plan del ejercicio anterior. Fíjate especialmente en la información sobre los predicados.
+> **NOTA:** Un predicado es cualquier condición que filtra filas en una consulta. En un plan de ejecución, Oracle indica cómo y cuándo aplica ese filtro en `PREDICATE INFORMATION`.
+
+```SQL
+-- Usamos un hint sin alias para forzar la exploración completa de la tabla:
+SELECT /*+ FULL(emp) */ * FROM emp WHERE empno = 7902;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 3956160932
+
+--------------------------------------------------------------------------
+| Id  | Operation         | Name | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |      |     1 |    38 |     3   (0)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| EMP  |     1 |    38 |     3   (0)| 00:00:01 |
+--------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("EMPNO"=7902)
+
+-- Para usar el hint usando alias:
+SELECT /*+ FULL(e) */ FROM emp e WHERE empno = 7902;
+```
+
+🔍 **¿Qué hace este plan de ejecución?**
+En esta consulta hemos usado el *hint* `/*+ FULL(emp) */` para forzar a Oracle a ignorar el índice de la clave primaria (`PK_EMP`) y realizar en su lugar una exploración completa de la tabla.
+Como resultado, Oracle accede a todos los registros de la tabla y aplica el filtrado `WHERE empno = 7902` en memoria, fila a fila.
+- La operación principal es `TABLE ACCESS FULL`, lo que significa que Oracle lee todas las filas de la tabla.
+- Aunque solo se espera encontrar 1 fila, el plan indica que Oracle debe recorrer las 14 filas de la tabla y filtrar por condición.
+
+**Diferencias con el plan anterior:**
+- En el primer plan se accede mediante índices (`INDEX UNIQUE SCAN`), mientras que en este plan se escanean todas las filas (`TABLE ACCESS FULL`).
+- El primer plan es más eficiente, ya que es un acceso directo; mientras que en este plan la eficiencia es menor ya que se realiza una lectura total.
+- **Tipo de predicado:** en el primer plan el predicado es `access("EMPNO"=7902)`, es decir, usa el índice para encontrar directamente las filas que cumplen la condición, sin mirar las demás filas. En el segundo plan el predicado es `filter("EMPNO"=7902)`, es decir, Oracle lee primero las filas, y luego aplica el filtro evaluando la condición fila por fila.
+- El coste estimado del primer plan es 1, mientras que el coste del segundo es 3.
+
+> **PREDICADOS:** `access` indica condiciones usadas para **acceder** a los datos (usualmente mediante índices), mientras que `filter` son condiciones evaluadas **después de obtener los datos** (usualmente en escaneos completos de tabla).
+
