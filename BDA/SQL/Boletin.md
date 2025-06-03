@@ -733,4 +733,32 @@ Al ejecutar `SET AUTOTRACE TRACEONLY EXPLAIN`, se le indica a Oracle que, al lan
 
 > **NOTA:** cada consulta que se lance será ejecutada (esto es especialmente importante si la consulta modifica datos).
 
+#### 3. Muestra el plan de ejecución para la consulta que selecciona todos los datos del empleado 7902.
+```SQL
+-- Como ya tenemos AUTOTRACE activado, hacemos la consulta directamente
+SELECT *
+FROM emp
+WHERE empno = 7902;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 2949544139
+
+---------------------------------------------------------------------------
+| Id  | Operation                   | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------
+|   0 | SELECT STATEMENT            |        |     1 |    38 |     1   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS BY INDEX ROWID| EMP    |     1 |    38 |     1   (0)| 00:00:01 |
+|*  2 |   INDEX UNIQUE SCAN         | PK_EMP |     1 |       |     0   (0)| 00:00:01 |
+---------------------------------------------------------------------------
+Predicate Information (identified by operation id):
+---------------------------------------------------
+   2 - access("EMPNO"=7902)
+```
+
+🔍 **¿Qué hace este plan de ejecución?**
+- **Operación 2:** `INDEX UNIQUE SCAN` indica que Oracle accede directamente al índice `PK_EMP` (el de la clave primaria), para localizar el valor `7902` en la columna `empno`.
+- **Operación 1:** Una vez localizado el índice, se usa `TABLE ACCESS BY INDEX ROWID` para acceder al bloque de datos real de la tabla `emp`.
+- Se estima `Rows = 1` ya que `empno` es una clave única (no hay múltiples filas con su valor, solo una).
+- El plan tiene un coste muy bajo (`Cost = 1`), ya que el acceso es directo y muy eficiente al usar índices.
 
