@@ -803,3 +803,76 @@ Como resultado, Oracle accede a todos los registros de la tabla y aplica el filt
 
 > **PREDICADOS:** `access` indica condiciones usadas para **acceder** a los datos (usualmente mediante índices), mientras que `filter` son condiciones evaluadas **después de obtener los datos** (usualmente en escaneos completos de tabla).
 
+> **HINTS CON/SIN ALIAS:** si usas un alias en la consulta (`FROM emp e`) se debe usar el mismo alias en los hints, o el hint será ignorado por el optimizador.
+
+#### 5. Aunque la consulta parezca absurda, busca los códigos de los empleados 7902, 7839 y 5432 (obtén solo el campo `empno`, para verificar cuáles de ellos existen). Muestra el plan de ejecución.
+```SQL
+SELECT empno FROM emp WHERE empno IN (7902, 7839, 5432);
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 908504414
+
+-----------------------------------------------------------------------------
+| Id  | Operation          | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |        |     2 |     8 |     1   (0)| 00:00:01 |
+|   1 |  INLIST ITERATOR   |        |       |       |            |          |
+|*  2 |   INDEX UNIQUE SCAN| PK_EMP |     2 |     8 |     1   (0)| 00:00:01 |
+-----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - access("EMPNO"=5432 OR "EMPNO"=7839 OR "EMPNO"=7902)
+```
+
+- `INDEX UNIQUE SCAN` sobre `PK_EMP`: Oracle accede al índice `PK_EMP` porque `EMPNO` es la clave primaria.
+- `INLIST ITERATOR`: esta operación permite a Oracle reutilizar el acceso por índice para varios valores dentro del `IN`, sin repetir todo el plan para cada valor.
+- `access("EMPNO"=5432 OR "EMPNO"=7839 OR "EMPNO"=7902)` muestra que se está buscando con una condición `OR`.
+- De los tres valores, solo dos existen en la tabla, por eso la estimación de filas es `Rows = 2`.
+
+Oracle optimiza la búsqueda múltiple en una columna indexada usando `INLIST ITERATOR`, lo que transforma esta condición en varias búsquedas por índice optimizadas por este operador. Esto permite resolver la consulta en un solo paso, accediendo directamente el índice `PK_EMP`.
+
+#### 6. ¿Y qué pasa si queremos obtener todos los códigos de empleados?
+```SQL
+SELECT empno FROM emp;
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 179099197
+
+---------------------------------------------------------------------------
+| Id  | Operation        | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------
+|   0 | SELECT STATEMENT |        |    14 |    56 |     1   (0)| 00:00:01 |
+|   1 |  INDEX FULL SCAN | PK_EMP |    14 |    56 |     1   (0)| 00:00:01 |
+---------------------------------------------------------------------------
+```
+
+Como Oracle solo necesita la columna `empno` (que ya está en el índice `PK_EMP`), detecta que no es necesario leer todos los datos de la tabla (lo cual es menos eficiente) y optimiza el acceso usando únicamente el índice. `INDEX FULL SCAN` escanea completamente el índice para leer todos los valores de la columna `empno`.
+
+#### 7. Busca ahora el código y salario del empleado "SMITH". Muestra el plan.
+```SQL
+SELECT empno, sal FROM emp WHERE ename = 'SMITH';
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 3956160932
+
+--------------------------------------------------------------------------
+| Id  | Operation         | Name | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |      |     1 |    14 |     3   (0)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| EMP  |     1 |    14 |     3   (0)| 00:00:01 |
+--------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("ENAME"='SMITH')
+```
+
+- Oracle ejecuta una búsqueda completa de la tabla, ya que no hay un índice disponible para optimizar el acceso. Es decir, Oracle revisa fila por fila hasta encontrar aquella(s) (Oracle no sabe que solo hay una, puede haber varias) que cumplan la condición `ENAME = 'SMITH'`.
+- El coste es 3, es bajo porque la tabla es pequeña, pero si creciera, esta estrategia sería ineficiente.
+
+
+
