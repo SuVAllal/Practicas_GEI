@@ -197,7 +197,7 @@ SELECT OBJECT_NAME as NOMBRE, OBJECT_TYPE as TIPO
 FROM obj;
 ```
 
-## 3. VISTAS
+## 3. Vistas
 #### 1. Inserta la fila `(6, 'Libro BD', 1)` a través de la vista `VART4`. ¿Qué ocurre? Anula la transacción.
 ```SQL
 INSERT INTO vart4 VALUES(6, 'Libro BD', 1);
@@ -874,5 +874,535 @@ Predicate Information (identified by operation id):
 - Oracle ejecuta una búsqueda completa de la tabla, ya que no hay un índice disponible para optimizar el acceso. Es decir, Oracle revisa fila por fila hasta encontrar aquella(s) (Oracle no sabe que solo hay una, puede haber varias) que cumplan la condición `ENAME = 'SMITH'`.
 - El coste es 3, es bajo porque la tabla es pequeña, pero si creciera, esta estrategia sería ineficiente.
 
+#### 8. Repite el ejercicio anterior, pero antes crea un índice sobre el campo `ename` de `emp`.
+```SQL
+CREATE INDEX i_emp_ename ON emp(ename);
+Índice creado.
+
+SELECT empno, sal FROM emp WHERE ename = 'SMITH';
+-----------------------------------------------------------------------------
+| Id  | Operation          | Name      | Rows  | Bytes | Cost (%CPU)| Time |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |           |     1 |    33 |     2   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS BY INDEX ROWID BATCHED| EMP       |     1 |    33 |     2   (0)| 00:00:01 |
+|*  2 |   INDEX RANGE SCAN | IDX_ENAME |     1 |       |     1   (0)| 00:00:01 |
+-----------------------------------------------------------------------------
+Predicate Information (identified by operation id):
+---------------------------------------------------
+   2 - access("ENAME"='SMITH')
+```
+
+Creamos un índice no único sobre la columna `ename` de la tabla. De esta forma, Oracle puede acceder directamente a las flas cuyo `ename` coincide con `'SMITH'` sin escanear toda la tabla.
+
+🔍 **¿Qué hace este plan de ejecución?**
+- Oracle ha utilizado el índice `i_emp_ename` usando la operación `INDEX RANGE SCAN`, accediendo directamente a la posición donde se encuentra `SMITH`.
+- Luego hace un `TABLE ACCESS BY INDEX ROWID BATCHED`, es decir, accede a la tabla `EMP` usando las direcciones de fila que obtuvo del índice.
+- Esto evita tener que recorrer toda la tabla, mejorando el rendimiento: el coste ha bajado de 3 a 2.
+
+> Esta técnica es mucho más eficiente cuando la tabla es grande y se buscan pocas filas.
+
+#### 9. Obtén ahora todos los nombres de los empleados. Discute por qué utiliza o no el índice.
+```SQL
+SELECT ename FROM emp;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 3956160932
+
+--------------------------------------------------------------------------
+| Id  | Operation         | Name | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |      |    14 |    98 |     3   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS FULL| EMP  |    14 |    98 |     3   (0)| 00:00:01 |
+--------------------------------------------------------------------------
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+-- Esta nota indica que Oracle ha utilizado las estadísticas para determinar el plan más eficiente
+```
+
+Oracle ha decidido leer toda la tabla ignorando el índice `i_emp_ename` ya que:
+- No hay filtrado por `ename` como en la consulta anterior, por tanto Oracle debe consultar todas las filas de todos modos, es decir, en este caso el índice no tiene ninguna ventaja.
+- Si se pidieran más datos en la consulta (como `sal`), el índice no tiene todos los datos necesarios, tendría que acceder al índice y después individualmente a cada fila, lo cual no es eficiente.
+- El optimizador calcula el coste estimado de cada estrategia, en este caso ha determinado que el coste es lo suficientemente barato para que no merezca la pena usar el índice.
+
+#### 10. ¿Qué plan obtenemos para listar el último empleado, por orden alfabético, de la empresa? ¿Por qué?
+```SQL
+SELECT * 
+FROM EMP 
+ORDER BY ename DESC 
+FETCH FIRST 1 ROW ONLY; -- mostramos solo la primera fila
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 3291446077
+
+-----------------------------------------------------------------------------
+| Id  | Operation                | Name | Rows  | Bytes | Cost (%CPU)| Time
+|
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT         |      |     1 |   107 |     4  (25)| 00:00:01
+|
+
+|*  1 |  VIEW                    |      |     1 |   107 |     4  (25)| 00:00:01
+|
+
+|*  2 |   WINDOW SORT PUSHED RANK|      |    14 |  1218 |     4  (25)| 00:00:01
+|
+
+|   3 |    TABLE ACCESS FULL     | EMP  |    14 |  1218 |     3   (0)| 00:00:01
+|
+
+-----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("from$_subquery$_002"."rowlimit_$$_rownumber"<=1)
+   2 - filter(ROW_NUMBER() OVER ( ORDER BY
+              NLSSORT("EMP"."ENAME",'nls_sort=''SPANISH''') DESC )<=1)
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+```
+
+1. `TABLE ACCESS FULL`: Oracle lee toda la tabla porque necesita examinar todos los valores de `ename` para determinar cuál es el último alfabéticamente. No puede usar el índice `i_emp_ename` porque no hay un filtrado por nombre, y el orden es descendente (en los índices está ordenado ascendentemente por defecto).
+2. `WINDOW SORT PUSHED RANK`: Oracle ordena los resultados por `ename DESC` y calcula un número de fila para poder filtrar después la primera fila. Este paso es costoso si la tabla es grande, ya que requiere ordenar todos los resultados antes de elegir uno.
+3. `VIEW`: Oracle crea una vista interna donde ya ha aplicado la numeración de filas anterior y luego filtra solo la primera fila.
+> **¿Por qué crea una vista?** Ya que `FETCH FIRST 1 ROW ONLY` requiere que primero se hayan ordenado completamente los resultados, y como el orden es parte lógica (no física), Oracle necesita preparar ese conjunto (crear una vista con ese conjunto ordenado) antes de poder filtrar en él.
+
+#### 11. Sabemos que el contenido actual de la tabla EMP no tiene ningún nulo en el campo ENAME (y, de hecho, no lo va a tener nunca; probablemente fue una desafortunada decisión de diseño). Usando 2 alternativas, obtén todos los nombres de los empleados de la empresa de forma que el plan utilice el índice.
+```SQL
+-- Primera alternativa:
+SELECT ename FROM emp WHERE ename IS NOT NULL;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 3695179370
+
+---------------------------------------------------------------------------
+| Id  | Operation        | Name        | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------
+|   0 | SELECT STATEMENT |             |    14 |    98 |     1   (0)| 00:00:01 |
+|*  1 |  INDEX FULL SCAN | I_EMP_ENAME |    14 |    98 |     1   (0)| 00:00:01 |
+---------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("ENAME" IS NOT NULL)
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+```
+
+> Un `INDEX FULL SCAN` ocurre cuando Oracle recorre completamente un índice, de principio a fin, sin saltarse ninguna entrada, incluso si no hay una condición selectiva. Es distinto a un `INDEX RANGE SCAN` que solo recorre un rango de valores.
+
+En este caso se utiliza `INDEX FULL SCAN` ya que la columna que queremos consultar ya está completamente en el índice `I_EMP_ENAME`. Esto significa que Oracle no necesita ir a la tabla `EMP` para obtener los datos. Puede devolver la información usando solo el índice, lo cual es más eficiente que acceder directamente a la tabla con `ACCESS TABLE FULL` ya que de esta forma accederíamos a todas las columnas y bloques de datos cuando solo nos hace falta `ename`.
+
+La condición `IS NOT NULL` realmente no filtra nada (al no haber nulos de por sí) pero sí activa el uso del índice, ya que los índices guardan los datos que no son nulos. Al buscar valores que no son nulos, Oracle verifica que esa condición y esos datos van a estar dentro del índice.
+
+```SQL
+-- Segunda alternativa:
+ALTER TABLE emp MODIFY ename VARCHAR(10) NOT NULL;
+Tabla modificada.
+
+SELECT ename FROM emp;
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 3695179370
+
+-----------------------------------------------------------------------------
+| Id  | Operation        | Name        | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT |             |    14 |    98 |     1   (0)| 00:00:01 |
+|   1 |  INDEX FULL SCAN | I_EMP_ENAME |    14 |    98 |     1   (0)| 00:00:01 |
+-----------------------------------------------------------------------------
+
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+```
+
+Al declarar la columna `ename` como `NOT NULL`, Oracle ya sabe con certeza que no contiene valores nulos. Ahora el optimizador puede asumir que todas las filas del índice son válidas para devolver.
+De nuevo, al acceder solo a `ename` y ahora que no admite nulos, el índice satisface completamente la consulta.
+
+#### 13. Crea un índice sobre el campo `CODART` de la tabla `VENDA`. Selecciona ahora las ventas del artículo 1 y muestra el plan. ¿Utiliza el índice? Si no lo hace, asegúrate de que las estadísticas de la tabla estén actualizadas.
+```SQL
+-- Para actualizar las estadísticas:
+CALL dbms_stats.gather_schema_stats('scott');
+```
+
+```SQL
+CREATE INDEX i_venda_codart ON venda(codart);
+Índice creado.
+
+SELECT * FROM venda WHERE codart = 1;
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 1397270434
+
+-----------------------------------------------------------------------------
+| Id  | Operation                           | Name           | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                    |                |     2 |    44 |
+   2   (0)| 00:00:01 |
+
+|   1 |  TABLE ACCESS BY INDEX ROWID BATCHED| VENDA          |     2 |    44 |
+   2   (0)| 00:00:01 |
+
+|*  2 |   INDEX RANGE SCAN                  | I_VENDA_CODART |     2 |       |
+   1   (0)| 00:00:01 |
+
+-----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - access("CODART"=1)
+```
+
+En este caso se utiliza `INDEX RANGE SCAN` ya que la condición `codart = 1` filtra y espera recuperar pocas filas.
+Como la condición es altamente selectiva (devuelve pocas filas), y el índice guarda los elementos **ordenados**, Oracle decide usar el índice, escanear solo los valores que cumplan con la condición (`INDEX RANGE SCAN`) y luego acceder a las filas exactas en la tabla con `TABLE ACCESS BY INDEX ROWID` para obtener su información.
+- Evita leer todos los bloques de la tabla.
+- Usa el índice para ir directamente a las filas que cumplen la condición.
+
+#### 14. ¿Sería posible que cambiando el artículo que buscamos, Oracle modifique el plan, pudiendo usar o no el índice anterior?
+```SQL
+-- Como existen muchas ventas de todos los artículos menos del 1, basta con poner otro artículo
+SELECT * FROM venda WHERE codart = 2;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 370681662
+
+---------------------------------------------------------------------------
+| Id  | Operation         | Name  | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |       |    50 |  1100 |     4   (0)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| VENDA |    50 |  1100 |     4   (0)| 00:00:01 |
+---------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - filter("CODART"=2)
+```
+
+En este caso Oracle no usa el índice `i_venda_codart`, sino que recorre toda la tabla con un `TABLE ACCESS FULL`.
+El optimizador decide esto ya que:
+- Según las estadísticas, el valor `CODART = 2` aparece en muchas filas (tiene una baja selectividad).
+- Usar el índice implicaría muchas búsquedas en el índice y luego múltiples accesos a la tabla por `ROWID` para leer toda la información de la fila, lo cual es más costoso.
+- En este caso es más eficiente leer directamente toda la tabla, aplicando el filtro durante la lectura.
+
+> Para decidir entre un plan u otro, el optimizador usa las estadísticas para estimar cuántas filas se van a devolver y el coste entre las distintas alternativas de planes.
+
+#### Muestra el plan para obtener todos los datos de los artículos y sus ventas.
+```SQL
+SELECT * FROM artigo NATURAL JOIN venda;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 161264325
+
+-----------------------------------------------------------------------------
+| Id  | Operation                    | Name        | Rows  | Bytes | Cost (%CPU)
+| Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT             |             |  1002 | 47094 |     7  (15)
+| 00:00:01 |
+
+|   1 |  MERGE JOIN                  |             |  1002 | 47094 |     7  (15)
+| 00:00:01 |
+
+|   2 |   TABLE ACCESS BY INDEX ROWID| ARTIGO      |    20 |   500 |     2   (0)
+| 00:00:01 |
+
+|   3 |    INDEX FULL SCAN           | PK_ARTIGO12 |    20 |       |     1   (0)
+| 00:00:01 |
+
+|*  4 |   SORT JOIN                  |             |  1002 | 22044 |     5  (20)
+| 00:00:01 |
+
+|   5 |    TABLE ACCESS FULL         | VENDA       |  1002 | 22044 |     4   (0)
+| 00:00:01 |
+-----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   4 - access("ARTIGO"."CODART"="VENDA"."CODART")
+       filter("ARTIGO"."CODART"="VENDA"."CODART")
+```
+
+Internamente Oracle transforma el `JOIN` en:
+```SQL
+SELECT * FROM artigo a JOIN venda v ON a.codart = v.codart;
+```
+
+El optimizador registra las estadísticas de ambas tablas:
+- `ARTIGO`: pocos registros.
+- `VENDA`: tabla más grande.
+Selecciona una estrategia de `MERGE JOIN`, adecuada cuando ambas tablas están ordenadas o pueden ordenarse eficientemente:
+- Escanea completamente `VENDA` y la ordena por `CODART` (`SORT JOIN`).
+- Escanea `ARTIGO` usando su índice de clave primaria (`INDEX FULL SCAN`) ya ordenado por `CODART`.
+Una vez ambas fuentes están ordenadas, Oracle realiza un `MERGE JOIN`, que va emparejando los registros en orden ascendente por `CODART`.
+
+🔍 **¿Por qué no usa `NESTED LOOPS` o `HASH JOIN`?**
+- `NESTED LOOPS`: más costoso con tablas grandes como `VENDA`.
+- `HASH`: es útil si no hay orden, pero el `MERGE JOIN` es más eficiente al tener ya `artigo` ordenado por el índice de la clave primaria.
+
+#### 16. Fuerza a que se haga el join usando `nested loops` utilizando un `hint` y compara el coste con el anterior.
+```SQL
+SELECT /*+ use_nl(artigo venda) */ * FROM artigo NATURAL JOIN venda;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 1772300592
+
+-----------------------------------------------------------------------------
+| Id  | Operation          | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |        |  1002 | 47094 |    43   (0)| 00:00:01 |
+|   1 |  NESTED LOOPS      |        |  1002 | 47094 |    43   (0)| 00:00:01 |
+|   2 |   TABLE ACCESS FULL| ARTIGO |    20 |   500 |     3   (0)| 00:00:01 |
+|*  3 |   TABLE ACCESS FULL| VENDA  |    50 |  1100 |     2   (0)| 00:00:01 |
+-----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   3 - filter("ARTIGO"."CODART"="VENDA"."CODART")
+
+Hint Report (identified by operation id / Query Block Name / Object Alias):
+Total hints for statement: 1 (U - Unused (1)) -- El hint se marca como Unused
+---------------------------------------------------------------------------
+
+   2 -  SEL$58A6D7F6 / ARTIGO@SEL$1
+         U -  use_nl(artigo venda) 
+```
+
+Se fuerza el uso de `NESTED LOOPS` con el hint, pero el optimizador no lo aplica completamente (el hint aparece como `U (Unused)` en el `HINT REPORT`) porque no encuentra un índice adecuado para ejecutar eficientemente la parte interna del bucle.
+
+Oracle usa igualmente el algoritmo `NESTED LOOPS` aunque no aprovecha índices:
+- Primero realiza un `TABLE ACCESS FULL` sobre `ARTIGO` (la tabla externa).
+- Luego, por cada fila de `artigo`, hace un `TABLE ACCESS FULL` sobre `VENDA` para buscar coincidencias en `codart`.
+
+Esto resulta en un coste mucho mayor (43) comparado con el `MERGE JOIN` anterior (7), ya que se escanea `VENDA` múltiples veces (una por cada fila de `artigo`).
+
+#### 17. Fuerza ahora a que utilice `sort merge` join.
+```SQL
+SELECT /*+ use_merge(artigo venda) */ * FROM artigo NATURAL JOIN venda;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 161264325
+
+-----------------------------------------------------------------------------
+| Id  | Operation                    | Name        | Rows  | Bytes | Cost (%CPU)
+| Time     |
+
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT             |             |  1002 | 47094 |     7  (15)
+| 00:00:01 |
+
+|   1 |  MERGE JOIN                  |             |  1002 | 47094 |     7  (15)
+| 00:00:01 |
+
+|   2 |   TABLE ACCESS BY INDEX ROWID| ARTIGO      |    20 |   500 |     2   (0)
+| 00:00:01 |
+
+|   3 |    INDEX FULL SCAN           | PK_ARTIGO12 |    20 |       |     1   (0)
+| 00:00:01 |
+
+|*  4 |   SORT JOIN                  |             |  1002 | 22044 |     5  (20)
+| 00:00:01 |
+
+|   5 |    TABLE ACCESS FULL         | VENDA       |  1002 | 22044 |     4   (0)
+| 00:00:01 |
+-----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   4 - access("ARTIGO"."CODART"="VENDA"."CODART")
+       filter("ARTIGO"."CODART"="VENDA"."CODART")
+
+Hint Report (identified by operation id / Query Block Name / Object Alias):
+Total hints for statement: 1 (U - Unused (1))
+---------------------------------------------------------------------------
+
+   2 -  SEL$58A6D7F6 / ARTIGO@SEL$1
+         U -  use_merge(artigo venda)
+```
+
+Como es el plan que realizaba por defecto, marca el hint como Unused.
+Es el mismo plan obtenido en el ejercicio 15.
+
+#### 18. Fuerza ahora a que se utilice un `hash` join.
+```SQL
+SELECT /*+ use_hash(artigo venda) */ * FROM artigo NATURAL JOIN venda;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 830674281
+
+-----------------------------------------------------------------------------
+| Id  | Operation          | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |        |  1002 | 47094 |     7   (0)| 00:00:01 |
+|*  1 |  HASH JOIN         |        |  1002 | 47094 |     7   (0)| 00:00:01 |
+|   2 |   TABLE ACCESS FULL| ARTIGO |    20 |   500 |     3   (0)| 00:00:01 |
+|   3 |   TABLE ACCESS FULL| VENDA  |  1002 | 22044 |     4   (0)| 00:00:01 |
+-----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   1 - access("ARTIGO"."CODART"="VENDA"."CODART")
+
+Hint Report (identified by operation id / Query Block Name / Object Alias):
+Total hints for statement: 1 (U - Unused (1)) -- Lo marca como unused ya que también lo puede usar como predeterminado
+---------------------------------------------------------------------------
+
+   2 -  SEL$58A6D7F6 / ARTIGO@SEL$1
+         U -  use_hash(artigo venda)
+```
+
+Al hacer un `HASH JOIN` lee ambas tablas con `TABLE ACCESS FULL`, `artigo` con 20 filas y coste 3, y `venda` con 1002 filas y coste 4.
+A continuación, crea una tabla hash en memoria con la más pequeña (`artigo`) y luego la sondea usando las filas de `venda`.
+
+`HASH JOIN` es eficiente cuando:
+- No hay índices útiles (debemos escanear ambas tablas completamente y no importa el orden, entonces es nuestro caso).
+- Las tablas son grandes o medianas (`venda` es una tabla grande).
+- El coste de ordenar (como en `MERGE JOIN`) no compensa.
+
+Como el coste es equivalente con el de `MERGE JOIN` el optimizador considera ambos planes equivalentes en coste, así que escoge indistintamente según estadísticas y condiciones del sistema.
+
+#### 19. ¿Qué estrategia usaría si queremos obtener lo antes posible las primeras filas? ¿Por qué? Discute el coste obtenido por el planificador.
+```SQL
+SELECT /*+ first_rows */ * FROM artigo NATURAL JOIN venda;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 1394454721
+
+-----------------------------------------------------------------------------
+| Id  | Operation                    | Name        | Rows  | Bytes | Cost (%CPU)
+| Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT             |             |  1002 | 47094 |  1006   (0)
+| 00:00:01 |
+
+|   1 |  NESTED LOOPS                |             |  1002 | 47094 |  1006   (0)
+| 00:00:01 |
+
+|   2 |   NESTED LOOPS               |             |  1002 | 47094 |  1006   (0)
+| 00:00:01 |
+
+|   3 |    TABLE ACCESS FULL         | VENDA       |  1002 | 22044 |     4   (0)
+| 00:00:01 |
+
+|*  4 |    INDEX UNIQUE SCAN         | PK_ARTIGO12 |     1 |       |     0   (0)
+| 00:00:01 |
+
+|   5 |   TABLE ACCESS BY INDEX ROWID| ARTIGO      |     1 |    25 |     1   (0)
+| 00:00:01 |
+-----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   4 - access("ARTIGO"."CODART"="VENDA"."CODART")
+```
+
+❗El hint `FIRST_ROWS` cambia el objetivo del optimizador: ya no quiere minimizar el coste total, sino minimizar el tiempo para obtener las primeras filas.
+Y en eso, `NESTED LOOPS` es el rey:
+
+| Estrategia   | Tiempo en devolver la 1ª fila | Tiempo total consulta       |
+| ------------ | ----------------------------- | --------------------------- |
+| Nested Loops | 🟢 Muy rápido                 | 🔴 Malo si hay muchas filas |
+| Merge Join   | 🟡 Necesita ordenar           | 🟢 Bueno en total           |
+| Hash Join    | 🔴 Necesita construir hash    | 🟢 Bueno en total           |
+En este caso, lee una fila de `venda` con `TABLE ACCESS FULL`, después hace un `INDEX UNIQUE SCAN` en `artigo` usando el índice de la clave primaria, y así repite el proceso por cada fila. Oracle usa esta estrategia porque puede empezar a devolver resultados inmediatamente, sin esperar a hacer joins completos o crear estructuras auxiliares como hash o sort.
+Con este método, aunque el coste total (1006) es mayor que en otras estrategias, la latencia inicial es mucho menor, cumpliendo con la priorización de velocidad inicial y el objetivo de `FIRST_ROWS`.
+
+#### 20. Muestra el plan de ejecución de la consulta que obtiene el total vendido de cada artículo, obteniendo el código y la suma de precio de venta por la cantidad. ¿Encuentras algo extraño?
+```SQL
+SELECT codart, SUM(prezoven * cantven)
+FROM artigo NATURAL JOIN VENDA
+GROUP BY codart; 
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 552263373
+
+----------------------------------------------------------------------------
+| Id  | Operation          | Name  | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |       |    20 |   200 |     5  (20)| 00:00:01 |
+|   1 |  HASH GROUP BY     |       |    20 |   200 |     5  (20)| 00:00:01 |
+|   2 |   TABLE ACCESS FULL| VENDA |  1002 | 10020 |     4   (0)| 00:00:01 |
+----------------------------------------------------------------------------
+```
+
+Lo extraño es que no aparece el acceso a la tabla `ARTIGO` en el plan de ejecución aunque la hayamos usado en el `NATURAL JOIN`.
+Esto ocurre porque los campos solicitados están en la tabla `venda`, y el `codart` también está en `venda`. Oracle detecta que no necesita realmente acceder a `artigo` para satisfacer la consulta. Esto significa que el join se elimina en tiempo de compilación por ser innecesario para esta consulta.
+
+#### 21. Deshabilita o elimina la restricción `FK_ARTIGO` y vuelve a obtener el total vendido de cada artículo. Recuerda dejar de nuevo la restricción creada y habilitada una vez termines este ejercicio.
+```SQL
+-- Desactivamos la restricción
+ALTER TABLE venda DISABLE CONSTRAINT fk_artigo;
+
+-- Ejecutamos la sentencia
+SELECT codart, SUM(prezoven * cantven)
+FROM artigo NATURAL JOIN venda
+GROUP BY codart;
+
+Plan de Ejecución
+----------------------------------------------------------
+Plan hash value: 1416618628
+
+--------------------------------------------------------------------------------
+----
+
+| Id  | Operation            | Name        | Rows  | Bytes | Cost (%CPU)| Time
+   |
+
+--------------------------------------------------------------------------------
+----
+
+|   0 | SELECT STATEMENT     |             |    20 |   580 |     5  (20)| 00:00:
+01 |
+
+|   1 |  NESTED LOOPS        |             |    20 |   580 |     5  (20)| 00:00:
+01 |
+
+|   2 |   VIEW               | VW_GBC_5    |    20 |   520 |     5  (20)| 00:00:
+01 |
+
+|   3 |    HASH GROUP BY     |             |    20 |   200 |     5  (20)| 00:00:
+01 |
+
+|   4 |     TABLE ACCESS FULL| VENDA       |  1002 | 10020 |     4   (0)| 00:00:
+01 |
+
+|*  5 |   INDEX UNIQUE SCAN  | PK_ARTIGO12 |     1 |     3 |     0   (0)| 00:00:
+01 |
+
+--------------------------------------------------------------------------------
+----
 
 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   5 - access("ARTIGO"."CODART"="ITEM_1")
+
+
+-- Volvemos a activar la restricción
+ALTER TABLE venda ENABLE CONSTRAINT fk_artigo;
+```
