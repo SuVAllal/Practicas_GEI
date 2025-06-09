@@ -1,0 +1,147 @@
+# French translations for ipm package.
+# Copyright (C) 2024 THE ipm'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the ipm package.
+# Andre <andre@andre-vivobook-15-asus-laptop-x560ud>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ipm 2425-p_escritorio-pink-floyd\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-31 14:33+0100\n"
+"PO-Revision-Date: 2024-10-31 14:35+0100\n"
+"Last-Translator: Andre <andre@andre-vivobook-15-asus-laptop-x560ud>\n"
+"Language-Team: French <traduc@traduc.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: view.py:106
+msgid "Lista de Pacientes"
+msgstr "Liste des Patients"
+
+#: view.py:151
+msgid "Pacientes"
+msgstr "Patients"
+
+#: view.py:202
+msgid "Paciente"
+msgstr "Patient"
+
+#: view.py:212
+msgid "Código"
+msgstr "Code"
+
+#: view.py:214 view.py:314
+msgid "Nombre"
+msgstr "Nom"
+
+#: view.py:216
+msgid "Apellido"
+msgstr "Prénom"
+
+#: view.py:223
+msgid "Medicaciones del paciente"
+msgstr "Médications du patient"
+
+#: view.py:268
+msgid "Detalles de la medicación"
+msgstr "Détails de la médication"
+
+#: view.py:303
+msgid "Medicamento"
+msgstr "Médicament"
+
+#: view.py:316
+msgid "Dosis"
+msgstr "Dose"
+
+#: view.py:318
+msgid "Fecha de Inicio"
+msgstr "Date de Début"
+
+#: view.py:320
+msgid "Duración del Tratamiento"
+msgstr "Durée du Traitement"
+
+#: view.py:340
+msgid "Posologias del paciente"
+msgstr "Posologies du patient"
+
+#: view.py:377
+#, python-brace-format
+msgid "Posología {item.id}: {item.hour} horas, {item.minute} minutos"
+msgstr "Posologie {item.id} : {item.hour} heures, {item.minute} minutes"
+
+#: view.py:383
+msgid "Añadir Medicación"
+msgstr "Ajouter Médication"
+
+#: view.py:396 view.py:449
+msgid "Ingrese nombre del medicamento"
+msgstr "Entrez le nom du médicament"
+
+#: view.py:399 view.py:452
+msgid "Ingrese dosis del tratamiento"
+msgstr "Entrez la dose du traitement"
+
+#: view.py:402 view.py:455
+msgid "Ingrese fecha de inicio (YYYY-MM-DD)"
+msgstr "Entrez la date de début (AAAA-MM-JJ)"
+
+#: view.py:405 view.py:458
+msgid "Ingrese la duración del tratamiento (días)"
+msgstr "Entrez la durée du traitement (jours)"
+
+#: view.py:410 view.py:464 view.py:512 view.py:561 view.py:605
+msgid "Aceptar"
+msgstr "Accepter"
+
+#: view.py:415 view.py:469 view.py:517 view.py:566 view.py:610
+msgid "Cancelar"
+msgstr "Annuler"
+
+#: view.py:436
+msgid "Modificar medicacion"
+msgstr "Modifier Médication"
+
+#: view.py:490
+msgid "Añadir posologia"
+msgstr "Ajouter Posologie"
+
+#: view.py:503 view.py:553
+msgid "Ingrese la hora de la posologia"
+msgstr "Entrez l'heure de la posologie"
+
+#: view.py:506 view.py:556
+msgid "Ingrese el minuto de la posologia"
+msgstr "Entrez la minute de la posologie"
+
+#: view.py:537
+msgid "Modificar posologia"
+msgstr "Modifier Posologie"
+
+#: view.py:550
+msgid "Ingrese el ID de la posologia a modificar"
+msgstr "Entrez l'ID de la posologie à modifier"
+
+#: view.py:586
+msgid "Borrar posologia"
+msgstr "Supprimer Posologie"
+
+#: view.py:600
+msgid "Ingrese el ID de la posologia a borrar"
+msgstr "Entrez l'ID de la posologie à supprimer"
+
+#: view.py:670
+msgid "Warning"
+msgstr "Avertissement"
+
+#: view.py:678
+msgid "Accept"
+msgstr "Accepter"
+
+#: presenter.py:388 presenter.py:395
+msgid "No more patients"
+msgstr "Plus de patients"

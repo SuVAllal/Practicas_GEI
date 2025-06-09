@@ -1,0 +1,147 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-31 14:33+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: view.py:106
+msgid "Lista de Pacientes"
+msgstr ""
+
+#: view.py:151
+msgid "Pacientes"
+msgstr ""
+
+#: view.py:202
+msgid "Paciente"
+msgstr ""
+
+#: view.py:212
+msgid "Código"
+msgstr ""
+
+#: view.py:214 view.py:314
+msgid "Nombre"
+msgstr ""
+
+#: view.py:216
+msgid "Apellido"
+msgstr ""
+
+#: view.py:223
+msgid "Medicaciones del paciente"
+msgstr ""
+
+#: view.py:268
+msgid "Detalles de la medicación"
+msgstr ""
+
+#: view.py:303
+msgid "Medicamento"
+msgstr ""
+
+#: view.py:316
+msgid "Dosis"
+msgstr ""
+
+#: view.py:318
+msgid "Fecha de Inicio"
+msgstr ""
+
+#: view.py:320
+msgid "Duración del Tratamiento"
+msgstr ""
+
+#: view.py:340
+msgid "Posologias del paciente"
+msgstr ""
+
+#: view.py:377
+#, python-brace-format
+msgid "Posología {item.id}: {item.hour} horas, {item.minute} minutos"
+msgstr ""
+
+#: view.py:383
+msgid "Añadir Medicación"
+msgstr ""
+
+#: view.py:396 view.py:449
+msgid "Ingrese nombre del medicamento"
+msgstr ""
+
+#: view.py:399 view.py:452
+msgid "Ingrese dosis del tratamiento"
+msgstr ""
+
+#: view.py:402 view.py:455
+msgid "Ingrese fecha de inicio (YYYY-MM-DD)"
+msgstr ""
+
+#: view.py:405 view.py:458
+msgid "Ingrese la duración del tratamiento (días)"
+msgstr ""
+
+#: view.py:410 view.py:464 view.py:512 view.py:561 view.py:605
+msgid "Aceptar"
+msgstr ""
+
+#: view.py:415 view.py:469 view.py:517 view.py:566 view.py:610
+msgid "Cancelar"
+msgstr ""
+
+#: view.py:436
+msgid "Modificar medicacion"
+msgstr ""
+
+#: view.py:490
+msgid "Añadir posologia"
+msgstr ""
+
+#: view.py:503 view.py:553
+msgid "Ingrese la hora de la posologia"
+msgstr ""
+
+#: view.py:506 view.py:556
+msgid "Ingrese el minuto de la posologia"
+msgstr ""
+
+#: view.py:537
+msgid "Modificar posologia"
+msgstr ""
+
+#: view.py:550
+msgid "Ingrese el ID de la posologia a modificar"
+msgstr ""
+
+#: view.py:586
+msgid "Borrar posologia"
+msgstr ""
+
+#: view.py:600
+msgid "Ingrese el ID de la posologia a borrar"
+msgstr ""
+
+#: view.py:670
+msgid "Warning"
+msgstr ""
+
+#: view.py:678
+msgid "Accept"
+msgstr ""
+
+#: presenter.py:388 presenter.py:395
+msgid "No more patients"
+msgstr ""

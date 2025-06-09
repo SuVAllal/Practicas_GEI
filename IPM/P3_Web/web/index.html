@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Página para buscar el informe de un paciente.">
+        <title>P3 IPM</title>
+        <!-- Enlaces a archivos CSS o JavaScript -->
+        <link rel="stylesheet" href="./CSS/styles.css">
+        <script src="script.js"></script>
+        <script src="model.js"></script>
+    </head>
+
+    <body>
+        <!-- Vista de Lista de Pacientes -->
+        <section id="patientListView" aria-labelledby = "patientListTitle">
+            <header>
+                <h1 id = "patientListTitle">Lista de pacientes</h1>
+            </header>
+                <form id="patientList">
+                    <label for="patient" id="patientListLabel">Seleccione un paciente para buscar su informe:</label>
+                    <select id="patient" aria-labelledby="patientListLabel" name="Pacientes" size="14">
+                        <option value="patient1">Paciente 1</option>
+                        <option value="patient2">Paciente 2</option>
+                        <option value="patient3">Paciente 3</option>
+                        <option value="patient4">Paciente 4</option>
+                        <option value="patient5">Paciente 5</option>
+                        <option value="patient6">Paciente 6</option>
+                        <option value="patient7">Paciente 7</option>
+                        <option value="patient8">Paciente 8</option>
+                        <option value="patient9">Paciente 9</option>
+                        <option value="patient10">Paciente 10</option>
+                        <option value="patient11">Paciente 11</option>
+                        <option value="patient12">Paciente 12</option>
+                        <option value="patient13">Paciente 13</option>
+                        <option value="patient14">Paciente 14</option>
+                        <option value="patient15">Paciente 15</option>
+                        <option value="patient16">Paciente 16</option>
+                        <option value="patient17">Paciente 17</option>
+                        <option value="patient18">Paciente 18</option>
+                        <option value="patient19">Paciente 19</option>
+                        <option value="patient20">Paciente 20</option>
+                    </select>
+                    <button type="submit" id="searchButton">Buscar</button>
+                </form>
+        </section>
+
+        <!-- Vista del Informe del Paciente -->
+        <section id="patientInformeView" aria-labelledby="patientInformeTitle" aria-hidden="true" style="display: none;">
+            <header>
+                <h1 id="patientInformeTitle">Informe del paciente:</h1>
+            </header>
+
+            <!-- Botón de flecha hacia atrás, oculta por defecto -->
+            <button id="backButton" aria-label="Volver a la lista de pacientes" class="back-button" style="display: none;">
+                <span class="arrow">&larr;</span> Volver
+            </button>
+            <div id="selectPatient"></div>
+
+            <!-- Filtros -->
+            <div id="filter">
+                <label for="filterSelect" id="filterSelectLabel">Seleccionar filtro de fecha:</label>
+                <select id="filterSelect" aria-labelledby="filterSelectLabel">
+                    <option value="lastMonth">Último mes</option>
+                    <option value="nDias">Últimos N días</option>
+                    <option value="custom">Fecha inicio - Fecha fin</option>
+                </select>
+            </div>
+
+            <div id="nDaysInput" aria-hidden="false" style="display: none;">
+		<label for="nDaysInputField">Ingrese el número de días para filtrar:</label>
+    		<input id="nDaysInputField" type="number" aria-describedby="nDaysInputField">
+            </div>
+
+            <div id="customDateRange" aria-hidden="false" style="display: none;">
+                <label for="startDate">Fecha inicio:</label>
+    		<input type="date" id="startDate" aria-labelledby="startDate">
+    		<label for="endDate">Fecha fin:</label>
+    		<input type="date" id="endDate" aria-labelledby="endDate">
+            </div>
+
+            <!-- Botón para aplicar el filtro -->
+             <button id="applyFilterButton">Aplicar</button>
+
+            <h2 id="timeRangeTitle">Último mes</h2>
+
+            <!-- Informe -->
+            <table>
+                <thead aria-live = "polite">
+                    <tr>
+                        <th>Medicación</th>
+                        <th>Día de la ingesta</th>
+                        <th>Hora de la ingesta</th>
+                        <th>Ingesta correcta</th>
+                        <th>Desviación</th>
+                    </tr>
+                </thead>
+                <tbody id="reportBody" aria-live = "polite">
+                    <tr>
+                        <td>Medicación 1</td>
+                        <td>06/12/2024</td>
+                        <td>10:30</td>
+                        <td>10:00</td>
+                        <td>30 min</td>
+                    </tr>
+                    <tr>
+                        <td>Medicación 2</td>
+                        <td>10/12/2024</td>
+                        <td>16:11</td>
+                        <td>16:00</td>
+                        <td>11 min</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </body>
+</html>
