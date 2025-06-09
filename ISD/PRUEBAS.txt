@@ -1,0 +1,49 @@
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-addCourse 'Educación Infantil' 'A Coruña' '2025-08-15T11:00' 19.99 2"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-addCourse 'Ofimática' 'Santiago' '2025-09-25T11:00' 19.99 10"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-addCourse 'Jardinería' 'A Coruña' '2025-10-20T11:00' 29.99 5"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-addCourse 'Nutrición' 'A Coruña' '2025-10-25T11:00' 19.99 10"
+
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-addCourse ' ' 'A Coruña' '2025-10-25T11:00' 19.99 2"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-addCourse 'Nutrición' ' ' '2025-10-25T11:00' 19.99 2"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-addCourse 'Nutrición' 'A Coruña' '2024-10-25T11:00' 19.99 2"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-addCourse 'Nutrición' 'A Coruña' '2025-10-25T11:00' -19.99 2"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-addCourse 'Nutrición' 'A Coruña' '2025-10-25T11:00' 19.99 0"
+
+
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-joinCourse 'user1@udc.es' 1 '0123456789111111'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-joinCourse 'user2@udc.es' 1 '0123456789222222'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-joinCourse 'user1@udc.es' 3 '0123456789111111'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-joinCourse 'user3@udc.es' 4 '0123456789333333'"
+
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-joinCourse 'user3@udc.es' 1 '0123456789333333'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-joinCourse 'user4@udc.es' 9 '0123456789444444'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-joinCourse 'user4@udc.es' 2 '0123456789'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-joinCourse 'user1@udc.es' 3 '0123456789111111'"
+
+
+UPDATE Course SET startDate='2024-10-25 11:00' WHERE courseId=4;
+
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-joinCourse 'user4@udc.es' 4 '0123456789333333'"
+
+
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-cancelInscription 3 'user1@udc.es'"
+
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-cancelInscription 3 'user1@udc.es'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-cancelInscription 4 'user3@udc.es'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-cancelInscription 2 'user1@udc.es'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-cancelInscription 9 'user2@udc.es'"
+
+
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-findCourses 'A Coruña'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-findCourses 'Santiago'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-findCourses 'Ferrol'"
+
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-findCourses ' '"
+
+
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-findCourse 4"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-findCourse 9"
+
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-findInscriptions 'user1@udc.es'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-findInscriptions 'user2@udc.es'"
+mvn exec:java -Dexec.mainClass="es.udc.ws.app.client.ui.AppServiceClient" -Dexec.args="-findInscriptions 'user6@udc.es'"

@@ -1,0 +1,8 @@
+Merge branch 'master' of github.com:GEI-ISD-614G010232425/isd-020 -> [VARIOS] Merge del archivo de pruebas.txt
+
+COMMITS DEL TRABAJO TUTELADO:
+[VARIOS] Añadido courses.thrift e interfaz correspondiente para FUNC-1 y FUNC-2 -> [TT-1] Añadido courses.thrift e interfaz correspondiente para FUNC-1 y FUNC-2
+[VARIOS] Implementada FUNC-1 y FUNC-2 en service. Corregidos errores en la interfaz -> [TT-1] Implementada FUNC-1 y FUNC-2 en service. Corregidos errores en la interfaz
+[FUNC-1] Implementada addCourse en client -> [TT-1] Implementada addCourse en client
+[FUNC-2] Implementado findCourses en client -> [TT-1] Implementado findCourses en client
+26/12/24: [TT-3] Añadidas operaciones al IDL y archivos gen-java -> [TT-2] Añadidas operaciones al IDL y archivos gen-java
