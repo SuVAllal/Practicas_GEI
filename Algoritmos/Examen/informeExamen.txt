@@ -1,0 +1,170 @@
+GEI (ALGORITMOS) - UDC
+- Algoritmos Examen Practico
+
+Susana Vilarnovo Allal
+GRUPO 1.3
+
+
+* INTRODUCCION *
+En esta practica se ha implementado un algoritmo para ordenar ascendentemente 
+un vector de n numeros enteros.
+
+Ademas, se ha comprobado el correcto funcionamiento del algoritmo mediante 
+un test, en el que se efectua el algoritmo sobre tres tipos diferentes de 
+vectores (aleatorio, descendente y ascendente). 
+
+Tras verificar que la ordenacion se efectua correctamente, el objetivo era 
+comparar la complejidad computacional del algoritmo con otros algoritmos de 
+ordenacion (insercion y shell) por medio de entradas de diferente tamaño, 
+indicando los resultados en las tablas (apartado 4).
+
+
+
+1. CARACTERISTICAS DE LA MAQUINA:
+
+      Marca: ROG Strix G512LU_G512LU
+      OS: Ubuntu 22.04.3 LTS
+      Kernel: 6.2.0-32-generic
+      CPU: Intel® Core™ i7-10750H CPU @ 2.60GHz × 12
+      Memoria Principal: 16 GB
+      ---
+      Compilador: gcc 11.4.0
+
+
+
+2. UNIDADES DE MEDIDA:
+      Los tiempos se expresaran en microsegundos.
+
+
+
+3. METODO:
+Se pone a prueba el algoritmo para verificar su correcto funcionamiento mediante tres tipos distintos de entradas: un vector aleatorio, un vector descendente y 
+otro ascendente, cada uno de 10 numeros, e indicando al final de cada salida si esta ordenada o no. La salida de los test es la siguiente:
+
+Test: ordenacion
+Inicializacion aleatoria
+ -8   9   7   9   7   8   2   6  -6  -1 
+ordenado? 0
+ -8  -6  -1   2   6   7   7   8   9   9 
+ordenado? 1
+Inicializacion descendente
+ 10   9   8   7   6   5   4   3   2   1 
+ordenado? 0
+  1   2   3   4   5   6   7   8   9  10 
+ordenado? 1
+Inicializacion ascendente
+  1   2   3   4   5   6   7   8   9  10 
+ordenado? 1
+  1   2   3   4   5   6   7   8   9  10 
+ordenado? 1
+
+Despues de comprobar que funciona de manera correcta, se miden los tiempos de 
+ejecucion (en microsegundos) de los algoritmos sobre tres tipos diferentes de 
+vectores (de rango n = 500 hasta n = 64000): aleatorios, ordenados de manera 
+descendente y ordenados ascendentemente. De esta forma, hemos podido calcular 
+empíricamente la complejidad del algoritmo.
+
+Para respaldar los resultados de la cota ajustada, se emplean dos cotas, una 
+subestimada y otra sobrestimada. Ademas, se tiene en cuenta si el tiempo que 
+tarda en ejecutarse es muy pequeño y no supera el umbral de confianza (t < 500µs); 
+en tal caso, se calculara la media de k = 10000 ejecuciones del algoritmo.
+
+
+
+4. RESULTADOS:
+
+Ordenacion: vector aleatorio
+              n            t(n)          t(n)/n    t(n)/n^(0.94)logn      t(n)/n^1.5
+(10000)*     500         34.6259        0.069252        0.011215           0.003097
+(10000)*    1000         74.0912        0.074091        0.011253           0.002343
+(10000)*    2000        155.4032        0.077702        0.011180           0.001737
+(10000)*    4000        322.4926        0.080623        0.011083           0.001275
+            8000        663.0000        0.082875        0.010960           0.000927
+           16000       1340.0000        0.083750        0.010719           0.000662  #¹
+           32000       2873.0000        0.089781        0.011179           0.000502
+           64000       6161.0000        0.096266        0.011713           0.000381  #²
+
+Cota subestimada: n^1
+Cota ajustada: nlogn // C = 0.011
+Cota sobrestimada: n^1.5
+
+(*) Tiempo promedio del numero de 10000 ejecuciones del algoritmo
+#¹ Mediciones anomalas, valores ligeramente inferiores a los esperados
+#² Mediciones anomalas, valores ligeramente superiores a los esperados
+
+
+Ordenacion: vector descendente
+              n            t(n)      t(n)/n^1.8        t(n)/n^2      t(n)/n^2.2
+(10000)*     500        216.9420        0.003007        0.000868        0.000250  #
+            1000        864.0000        0.003440        0.000864        0.000217  #
+            2000       3394.0000        0.003880        0.000848        0.000186
+            4000      13502.0000        0.004433        0.000844        0.000161
+            8000      53815.0000        0.005074        0.000841        0.000139
+           16000     212721.0000        0.005760        0.000831        0.000120
+           32000     852423.0000        0.006628        0.000832        0.000105
+           64000    3431638.0000        0.007663        0.000838        0.000092
+
+Cota subestimada: n^1.8
+Cota ajustada: n^2 // C = 0.0008
+Cota sobrestimada: n^2.2
+
+(*) Tiempo promedio del numero de 10000 ejecuciones del algoritmo
+# Mediciones anomalas, valores ligeramente superiores a los esperados
+
+
+Ordenacion: vector ascendente
+              n            t(n)      t(n)/n^1.8        t(n)/n^2      t(n)/n^2.2
+(10000)*     500         96.9680        0.001344        0.000388        0.000112  #
+(10000)*    1000        375.5071        0.001495        0.000376        0.000094
+            2000       1485.0000        0.001698        0.000371        0.000081
+            4000       5909.0000        0.001940        0.000369        0.000070
+            8000      23612.0000        0.002226        0.000369        0.000061
+           16000      94847.0000        0.002568        0.000370        0.000053
+           32000     376588.0000        0.002928        0.000368        0.000046
+           64000    1508804.0000        0.003369        0.000368        0.000040
+
+Cota subestimada: n^1.8
+Cota ajustada: n^2 // C = 0.0003
+Cota sobrestimada: n^2.2
+
+(*) Tiempo promedio del numero de 10000 ejecuciones del algoritmo
+# Mediciones anomalas, valores ligeramente superiores a los esperados
+
+
+Se comprueba que para la cota subestimada los valores crecen indefinidamente. 
+De manera similar, los valores asociados a la cota sobrestimada tienden a 0 
+al aproximarse al infinito. Ademas, se verifica que en el caso de la cota 
+ajustada, los valores se mantienen estables alrededor de una constante. 
+Por consiguiente, se establece que la complejidad para el algoritmo de 
+ordenacion dado se aproxima a O(n²) para vectores ascendentemente o
+descendentemente ordenados, y a O(n^(0.94)logn) para vectores aleatorios.
+
+
+
+5. CONCLUSION:
+Respecto al algoritmo dado, se puede concluir que tiene una complejidad
+computacional cuadratica, O(n²), para los casos en el que el pivote no 
+esta equilibrado, es decir, cuando es uno de los valores mas grandes 
+(vector inicial ya ordenado ascendentemente) o uno de los mas pequenos 
+(vector inicial ya ordenado descendentemente).
+
+Por otro lado, para los casos de vectores aleatorios, el pivote puede
+ser cualquier valor generado pseudolateatoriamente, por lo que estara
+mas equilibrado y la complejidad empirica sera menor, O(n^(0.94)logn), 
+ligeramente diferente a la teorica, O(nlogn) para este tipo de algoritmo
+de ordenacion (Quicksort).
+
+En comparacion a otros algoritmos de ordenacion como insercion y shell,
+la complejidad empirica de este algoritmo es superior en la mayoria de
+los casos:
+Para vectores aleatorios, este algoritmo es mas eficiente que la ordenacion
+por insercion y la de shell, cuya complejidad es O(n²) y O(n), respectivamente, 
+en este caso.
+No obstante, para los vectores ya ordenados ascendente o descendentemente,
+el algoritmo dado es menos eficiente, pues para estos vectores, la complejidad 
+de shell se situa en O(nlogn), mas eficiente que O(n²) del algoritmo.
+
+En conclusion, en caso de ordenar vectores ya ordenados es mejor optar por otro
+tipo de algoritmo de ordenacion, salvo en el caso de vectores aleatorios, donde
+la eficiencia de este algoritmo supera la de algunos otros tipos de algoritmos
+de ordenacion.

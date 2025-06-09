@@ -1,0 +1,5 @@
+all: monticulo.o p3.c
+	gcc $(CFLAGS) -o p3 p3.c *.o -lm
+	
+monticulo.o: monticulo.c monticulo.h
+	gcc $(CFLAGS) -c monticulo.c
