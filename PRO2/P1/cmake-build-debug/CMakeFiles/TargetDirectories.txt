@@ -1,0 +1,4 @@
+E:/GEI/1º CURSO/Pro2/Practica1_Pro2/Plantilla-Template_P1/P1/cmake-build-debug/CMakeFiles/main.dir
+E:/GEI/1º CURSO/Pro2/Practica1_Pro2/Plantilla-Template_P1/P1/cmake-build-debug/CMakeFiles/test_lists.dir
+E:/GEI/1º CURSO/Pro2/Practica1_Pro2/Plantilla-Template_P1/P1/cmake-build-debug/CMakeFiles/edit_cache.dir
+E:/GEI/1º CURSO/Pro2/Practica1_Pro2/Plantilla-Template_P1/P1/cmake-build-debug/CMakeFiles/rebuild_cache.dir

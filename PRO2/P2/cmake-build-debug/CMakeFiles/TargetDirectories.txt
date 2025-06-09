@@ -1,0 +1,5 @@
+C:/Users/Asus/Desktop/GEI/P2/cmake-build-debug/CMakeFiles/test_participant_list.dir
+C:/Users/Asus/Desktop/GEI/P2/cmake-build-debug/CMakeFiles/test_jury_list.dir
+C:/Users/Asus/Desktop/GEI/P2/cmake-build-debug/CMakeFiles/main.dir
+C:/Users/Asus/Desktop/GEI/P2/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Asus/Desktop/GEI/P2/cmake-build-debug/CMakeFiles/rebuild_cache.dir
